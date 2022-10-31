@@ -1,24 +1,24 @@
 import pygame
-from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
 from PIL import Image as PIL_Image
-#import threading
-#import time
-#import os
 
+from .Window import Screen
 from .Keyboard import keyboard
+from .Platform import Platform
+
+if not Platform.system == "Android":
+    from OpenGL.GL import *
+    # from OpenGL.GLU import *
 
 Object_List = []
 
-MGE_ver = "0.0.1"
+MGE_ver = "1.0.9"
 
 class Cache:
     class Temp:
         class Screen:
 
             class IMG:
-                def __init__(self, img=None, mode="RGB"):
+                def __init__(self, img=None):
                     if img is not None:
                         self.image = img
                         image_size = self.image.get_size()
@@ -33,7 +33,7 @@ class Cache:
                         self.image = PIL_Image.new("RGB", (32, 32), color=(0, 0, 0))
                         self.size = self.image.size
 
-                def set_img(self, img=None, mode="RGB"):
+                def set_img(self, img=None):
                     if img is not None:
                         self.image = img
                         image_size = self.image.get_size()
@@ -102,59 +102,6 @@ class Cache:
         button_cache = [False, False, False, False, False]
 
 class Object_Program:
-    class Screen:
-
-        class Camera:
-            def __init__(self, x=0, y=0):
-                self.loc_x = x
-                self.loc_y = y
-                # self.loc_z = loc[2]
-
-            def set_location(self, loc):
-                self.loc_x = loc[0]
-                self.loc_y = loc[1]
-                # self.loc_z = loc[2]
-
-            def get_location(self):
-                return self.loc_x, self.loc_y
-
-        def __init__(self):
-            self.screen = pygame.display.set_mode((1, 1))
-            self.opengl = False
-            self.clock = pygame.time.Clock()
-            self.camera = self.Camera()
-
-        @staticmethod
-        def get_screen_type():
-            return "main"
-
-        def get_screen_img(self):
-            image = self.screen
-            image_size = image.get_size()
-            raw_str = pygame.image.tostring(pygame.transform.scale(image, image_size), "RGB", False)
-            return PIL_Image.frombytes("RGB", image_size, raw_str)
-
-        def set_size(self, x, y, mode=False, opengl=False):
-            Program.Temp.Resolution = [x, y]
-            self.opengl = opengl
-            if not mode:
-                if opengl:
-                    self.screen = pygame.display.set_mode((x, y), DOUBLEBUF | OPENGL)
-                    gluPerspective(45, (x / y), 0.1, 500.0)
-                else:
-                    self.screen = pygame.display.set_mode((x, y))
-            elif mode == "RESIZABLE":
-                if opengl:
-                    self.screen = pygame.display.set_mode((x, y), DOUBLEBUF | OPENGL | RESIZABLE)
-                    gluPerspective(45, (x / y), 0.1, 500.0)
-                else:
-                    self.screen = pygame.display.set_mode((x, y), RESIZABLE)
-            elif mode == "FULLSCREEN":
-                if opengl:
-                    self.screen = pygame.display.set_mode((x, y), DOUBLEBUF | OPENGL | FULLSCREEN)
-                    gluPerspective(45, (x / y), 0.1, 500.0)
-                else:
-                    self.screen = pygame.display.set_mode((x, y), FULLSCREEN)
 
     class Temp:
         Resolution = [0, 0]
@@ -168,7 +115,7 @@ class Object_Program:
         #print('Number of modules initialized successfully:', numpass)
         #print('Number of modules initialized fail:', numfail)
 
-        self.screen = self.Screen()
+        self.screen = Screen()
         self.event = pygame.event.poll()
         self.time = {"mon": 0, "day": 0, "hours": 0, "min": 0, "sec": 0}
         self.clock = 0
@@ -191,8 +138,9 @@ class Object_Program:
 
         if still_frame_optimization:
             if self.event or keyboard("all"):
-                if self.screen.opengl:
-                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+                if not Platform.system == "Android":
+                    if self.screen.opengl:
+                        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
                 if not pygame.mouse.get_cursor().data[0] == self.Temp.cursor:
                     pygame.mouse.set_cursor(self.Temp.cursor)
                 self.cursor(0)
@@ -203,8 +151,9 @@ class Object_Program:
                 #pygame.display.update()
                 pygame.display.flip()
         else:
-            if self.screen.opengl:
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            if not Platform.system == "Android":
+                if self.screen.opengl:
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             if not pygame.mouse.get_cursor().data[0] == self.Temp.cursor:
                 pygame.mouse.set_cursor(self.Temp.cursor)
             self.cursor(0)
@@ -232,134 +181,5 @@ class Object_Program:
 
     def get_fps(self):
         return self.screen.clock.get_fps()
-
-class Internal_Screen:
-    def __init__(self, localization, size):
-        self.screen = Program.screen.screen
-        #self.screen = pygame.Surface(size, pygame.SRCALPHA)
-        #pygame.draw.rect(self.screen, (30, 30, 30, 255), (0, 0, *size))
-
-        self.localization = localization
-        self.size = size
-
-        self.cache_screen = pygame.Surface(size, pygame.SRCALPHA)
-
-        self.camera = Program.screen.Camera()
-
-        self.render = False
-        self.always_render = False
-
-    def draw_screen(self, screen):
-        loc_camera = screen.camera.get_location()
-        size_screen = screen.screen.get_size()
-        cache_size = self.size
-        cache_localization = self.localization
-
-        if "%" in str(cache_localization[0]):
-            cache_000 = str(cache_localization[0]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_localization = (size_screen[0] / 100 * cache_000, cache_localization[1])
-        if "%" in str(cache_localization[1]):
-            cache_000 = str(cache_localization[1]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_localization = [cache_localization[0], size_screen[1] / 100 * cache_000]
-
-        if "%" in str(cache_size[0]):
-            cache_000 = str(cache_size[0]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_size = (size_screen[0] / 100 * cache_000, cache_size[1])
-        if "%" in str(cache_size[1]):
-            cache_000 = str(cache_size[1]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_size = (cache_size[0], size_screen[1] / 100 * cache_000)
-
-        #if self.scale:
-        #    if self.xy == "x":
-        #        res = cache_size[0] / self.scale[0]
-        #    elif self.xy == "y":
-        #        res = cache_size[1] / self.scale[1]
-        #    else:
-        #        res = 50
-        #    cache_size = (int(res * self.scale[0]), int(res * self.scale[1]))
-
-        if cache_localization[0] == "center_obj":
-            cache_localization[0] = (size_screen[0] - cache_size[0]) / 2
-        if cache_localization[1] == "center_obj":
-            cache_localization[1] = (size_screen[1] - cache_size[1]) / 2
-
-        try:
-            cache_localization = [cache_localization[0] + loc_camera[0], cache_localization[1] + loc_camera[1]]
-        except TypeError:
-            print("Error")
-            cache_localization = [0, 0]
-
-        if not self.render or self.always_render:
-            self.cache_screen = pygame.Surface(cache_size, pygame.SRCALPHA)
-            pygame.draw.rect(self.cache_screen, (255, 255, 255, 255), (0, 0, *cache_size), border_radius=0)
-            self.cache_screen.blit(self.screen, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
-
-            self.screen = pygame.Surface(cache_size, pygame.SRCALPHA)
-            pygame.draw.rect(self.screen, (255, 255, 255, 255), (0, 0, *cache_size), border_radius=0)
-
-            #if 254 >= self.material.alpha >= 0:
-            #    self.cache_object.set_alpha(self.material.alpha)
-            #if self.rotation > 0:
-            #    self.cache_object = pygame.transform.rotate(self.cache_object, self.rotation)
-
-            self.render = True
-
-        #if not self.border_size == 0:
-        #    screen.screen.blit(self.cache_object, (cache_localization[0], cache_localization[1]))
-        #    pygame.draw.rect(screen.screen, self.border_color, (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), self.border_size, border_radius=self.border_radius)
-        #else:
-        #    # pygame.draw.rect(cache_object, self.material.get_color(), (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), border_radius=self.border_radius)
-        screen.screen.blit(self.cache_screen, (cache_localization[0], cache_localization[1]))
-
-    def set_loc_size(self, localization, size):
-        self.localization = localization
-        self.size = size
-
-    def get_localization(self):
-        size_screen = Program.screen.screen.get_size()
-        cache_localization = self.localization
-
-        if "%" in str(cache_localization[0]):
-            cache_000 = str(cache_localization[0]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_localization = (size_screen[0] / 100 * cache_000, cache_localization[1])
-        if "%" in str(cache_localization[1]):
-            cache_000 = str(cache_localization[1]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_localization = [cache_localization[0], size_screen[1] / 100 * cache_000]
-
-        return cache_localization
-
-    def get_size(self):
-        size_screen = Program.screen.screen.get_size()
-        cache_size = self.size
-
-        if "%" in str(cache_size[0]):
-            cache_000 = str(cache_size[0]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_size = (size_screen[0] / 100 * cache_000, cache_size[1])
-        if "%" in str(cache_size[1]):
-            cache_000 = str(cache_size[1]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_size = (cache_size[0], size_screen[1] / 100 * cache_000)
-
-        #if self.scale:
-        #    if self.xy == "x":
-        #        res = cache_size[0] / self.scale[0]
-        #    elif self.xy == "y":
-        #        res = cache_size[1] / self.scale[1]
-        #    else:
-        #        res = 50
-        #    cache_size = (int(res * self.scale[0]), int(res * self.scale[1]))
-
-        return cache_size
-
-    @staticmethod
-    def get_screen_type():
-        return "Internal"
 
 Program = Object_Program()

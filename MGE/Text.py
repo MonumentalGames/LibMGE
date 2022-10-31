@@ -1,5 +1,6 @@
 import pygame
 import pyperclip
+import threading
 from .Keyboard import keyboard
 from .MGE import Cache
 
@@ -13,6 +14,8 @@ class ObjectText:
         self.text = text
 
         self.text_render_cache = False
+
+        self.threading = threading.Thread(target=self.render())
 
         self.cursor = 11
 
@@ -75,6 +78,10 @@ class ObjectText:
         else:
             self.render()
         return self.text_render_size
+
+    def threading_render(self):
+        self.threading = threading.Thread(target=self.render())
+        self.threading.start()
 
     def render(self):
         self.text_render_font = pygame.font.SysFont(self.font, self.size)
@@ -168,21 +175,22 @@ class ObjectText:
                 print("Error")
                 cache_localization = [0, 0]
 
-        if render:
-            if self.text:
-                if self.text_render_cache:
-                    screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
-                else:
-                    self.render()
+        if not self.threading.is_alive():
+            if render:
+                if self.text:
                     if self.text_render_cache:
                         screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
+                    else:
+                        self.threading_render()
+                        if self.text_render_cache:
+                            screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
+                else:
+                    pass
             else:
-                pass
-        else:
-            if not self.text_render_cache:
-                pass
-            if self.text:
-                screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
+                if not self.text_render_cache:
+                    pass
+                if self.text:
+                    screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
 
 def text_box(text, type="all"):
     if type == "all":

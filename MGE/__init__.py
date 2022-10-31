@@ -1,6 +1,11 @@
 import platform
 
-from .MGE import Program, Internal_Screen, Cache, MGE_ver
+from .Platform import Platform
+
+from .MGE import Program, Cache, MGE_ver
+
+from .Camera import Camera
+from .Internal_Window import Internal_Window
 
 from .Text import ObjectText, text_box
 from .Object2D import Object2D
@@ -16,4 +21,8 @@ from .Mesh import *
 from .Mouse import mouse_button, mouse_position, mouse_set_position, mouse_set_visible
 from .Keyboard import keyboard
 
-print(f"Beta-MGE {MGE_ver} (Python {platform.python_version()})\n")
+from .Button import *
+
+from .Audio import audio
+
+print(f"Beta-MGE {MGE_ver} (pygame {MGE.Program.pygame.version.ver} | Python {platform.python_version()})\n")
