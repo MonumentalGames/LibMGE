@@ -7,11 +7,12 @@ from .Platform import Platform
 
 if not Platform.system == "Android":
     from OpenGL.GL import *
-    # from OpenGL.GLU import *
+    from OpenGL.GLU import *
 
-Object_List = []
-
-MGE_ver = "0.1.9"
+class MGE_ver:
+    version = "0.1"
+    build = "12"
+    phase = "Beta"
 
 class Cache:
     class Temp:
@@ -98,6 +99,9 @@ class Cache:
             key_left_cache = True
             key_right_cache = True
 
+        class Button:
+            button_active = False
+
     class Mouse_Button:
         button_cache = [False, False, False, False, False]
 
@@ -111,10 +115,6 @@ class Object_Program:
         pygame.init()
         pygame.font.init()
 
-        #numpass, numfail = pygame.init()
-        #print('Number of modules initialized successfully:', numpass)
-        #print('Number of modules initialized fail:', numfail)
-
         self.screen = Screen()
         self.event = pygame.event.poll()
         self.time = {"mon": 0, "day": 0, "hours": 0, "min": 0, "sec": 0}
@@ -125,16 +125,20 @@ class Object_Program:
 
         #Cache.Temp.Screen.img = Image(pygame.Surface.convert(self.screen.screen))
 
-    def update(self, still_frame_optimization=False, save_last_rendered_frame=True):
+    def update(self, still_frame_optimization: bool = False, save_last_rendered_frame: bool = True):
         if not self.clock == 0:
             self.screen.clock.tick(self.clock)
-
 
         #cache_time = time.localtime(time.time())
         #self.time = {"year": cache_time.tm_year, "mon": cache_time.tm_mon, "day": cache_time.tm_mday, "hour": cache_time.tm_hour, "min": cache_time.tm_min, "sec": cache_time.tm_sec}
 
-        self.Temp.Resolution = self.screen.screen.get_size()
+        self.Temp.Resolution = list(self.screen.screen.get_size())
         self.event = pygame.event.poll()
+
+        if Cache.Temp.Button.button_active:
+            Cache.Temp.Button.button_active = False
+
+        self.screen.render()
 
         if still_frame_optimization:
             if self.event or keyboard("all"):
@@ -161,7 +165,6 @@ class Object_Program:
             if save_last_rendered_frame:
                 Cache.Temp.Screen.img.set_img(pygame.Surface.convert(self.screen.screen))
 
-            #pygame.display.update()
             pygame.display.flip()
 
         #self.event_render = False
@@ -169,7 +172,7 @@ class Object_Program:
     def cursor(self, cursor):
         self.Temp.cursor = cursor
 
-    def set_clock(self, clock):
+    def set_clock(self, clock: int):
         self.clock = clock
 
     def set_caption(self, caption):

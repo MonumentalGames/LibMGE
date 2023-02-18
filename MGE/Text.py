@@ -5,17 +5,17 @@ from .Keyboard import keyboard
 from .MGE import Cache
 
 class ObjectText:
-    def __init__(self, localization, size, text="", font=pygame.font.get_default_font()):
+    def __init__(self, localization, size: int, text: str = "", font=pygame.font.get_default_font()):
         self.localization = localization
         self.size = size
 
         self.font = font
-        self.color = [255, 255, 255]
+        self.color = (255, 255, 255)
         self.text = text
 
-        self.text_render_cache = False
-
         self.threading = threading.Thread(target=self.render())
+
+        self.text_render_cache = False
 
         self.cursor = 11
 
@@ -36,7 +36,7 @@ class ObjectText:
             self.color = color
             self.text_render_cache = False
 
-    def set_text(self, text):
+    def set_text(self, text: str):
         if self.text == text:
             pass
         else:
@@ -50,7 +50,7 @@ class ObjectText:
             self.localization = localization
             self.text_render_cache = False
 
-    def set_size(self, size):
+    def set_size(self, size: int):
         if self.size == size:
             pass
         else:
@@ -89,7 +89,7 @@ class ObjectText:
         self.text_render = self.text_render_font.render(self.text, True, self.color)
         self.text_render_cache = True
 
-    def draw_object(self, screen, render):
+    def draw_object(self, screen, render: bool):
         loc_camera = screen.camera.get_location()
         if screen.get_screen_type() == "main":
             size_screen = screen.screen.get_size()
@@ -192,7 +192,7 @@ class ObjectText:
                 if self.text:
                     screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
 
-def text_box(text, type="all"):
+def text_box(text: str, type: str = "all"):
     if type == "all":
         set_text = [True, True, True]
     elif type == "number":

@@ -7,40 +7,16 @@ def mouse_position():
 def mouse_set_position(pos):
     pygame.mouse.set_pos(pos)
 
-def mouse_set_visible(visible=True):
+def mouse_set_visible(visible: bool = True):
     pygame.mouse.set_visible(visible)
 
-def mouse_button(button, multiple_click=False):
-    if multiple_click:
-        if button == 1:
-            if pygame.mouse.get_pressed(3)[0]:
-                return True
-        if button == 2:
-            if pygame.mouse.get_pressed(3)[1]:
-                return True
-        if button == 3:
-            if pygame.mouse.get_pressed(3)[2]:
-                return True
-    else:
-        if button == 1:
-            if pygame.mouse.get_pressed(3)[0]:
-                if not Cache.Mouse_Button.button_cache[0]:
-                    Cache.Mouse_Button.button_cache[0] = True
-                    return True
-        if button == 2:
-            if pygame.mouse.get_pressed(3)[1]:
-                if not Cache.Mouse_Button.button_cache[1]:
-                    Cache.Mouse_Button.button_cache[1] = True
-                    return True
-        if button == 3:
-            if pygame.mouse.get_pressed(3)[2]:
-                if not Cache.Mouse_Button.button_cache[2]:
-                    Cache.Mouse_Button.button_cache[2] = True
+def mouse_button(button: int = 1, multiple_click: bool = False):
+    for num in range(5):
+        if button - 1 == num:
+            if pygame.mouse.get_pressed(5)[num]:
+                if not Cache.Mouse_Button.button_cache[num] or multiple_click:
+                    Cache.Mouse_Button.button_cache[num] = True
                     return True
 
-        if not pygame.mouse.get_pressed(3)[0]:
-            Cache.Mouse_Button.button_cache[0] = False
-        if not pygame.mouse.get_pressed(3)[1]:
-            Cache.Mouse_Button.button_cache[1] = False
-        if not pygame.mouse.get_pressed(3)[2]:
-            Cache.Mouse_Button.button_cache[2] = False
+        if not pygame.mouse.get_pressed(5)[num]:
+            Cache.Mouse_Button.button_cache[num] = False

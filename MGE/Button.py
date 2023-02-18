@@ -1,3 +1,4 @@
+from .MGE import Cache
 
 class Button:
     def __init__(self, object_2d, object_text=None, text_align="center", object_2d_material_not_over=None, object_2d_material_over=None, text_color_not_over=(200, 200, 200), text_color_over=(255, 255, 255)):
@@ -6,6 +7,8 @@ class Button:
         self.cache_checkbox = False
 
         self.text_align = text_align
+
+        self.button_active = False
 
         if object_2d_material_over is not None:
             self.object_2d_material_over = object_2d_material_over
@@ -17,10 +20,12 @@ class Button:
         self.object_text_color_not_over = text_color_not_over
 
     def draw_button(self, screen):
-        if self.object_2d.over(screen) or self.cache_checkbox:
+        if (self.object_2d.over(screen) or self.cache_checkbox) and not Cache.Temp.Button.button_active and self.button_active:
+            self.button_active = False
             self.object_2d.set_material(self.object_2d_material_over)
             if self.object_text is not None:
                 self.object_text.set_color(self.object_text_color_over)
+            Cache.Temp.Button.button_active = True
         else:
             self.object_2d.set_material(self.object_2d_material_not_over)
             if self.object_text is not None:
@@ -39,6 +44,7 @@ class Button:
             self.object_text.draw_object(screen, True)
 
     def button(self, button, screen, multiple_click=False, button_type=""):
+        self.button_active = True
         if button_type == "":
             return self.object_2d.button(button, screen, multiple_click)
         elif button_type == "checkbox":
