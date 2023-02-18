@@ -11,7 +11,7 @@ if not Platform.system == "Android":
 
 Object_List = []
 
-MGE_ver = "1.0.9"
+MGE_ver = "0.1.9"
 
 class Cache:
     class Temp:
