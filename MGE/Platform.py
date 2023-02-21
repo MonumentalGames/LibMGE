@@ -1,3 +1,4 @@
+import sys
 from os import environ
 from platform import system
 from pygame._sdl2 import get_drivers
@@ -14,6 +15,8 @@ if system() == "Windows":
 elif system() == "Linux":
     if 'ANDROID_BOOTLOGO' in environ:
         Platform.system = "Android"
+        print("Error ('Unsupported Platform')")
+        sys.exit()
     else:
         Platform.system = "Linux"
 else:

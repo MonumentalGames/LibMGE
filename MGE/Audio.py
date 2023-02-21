@@ -2,7 +2,7 @@ import pygame
 #import pyaudio
 import os
 
-class audio:
+class Audio:
 
     volume = 100
 

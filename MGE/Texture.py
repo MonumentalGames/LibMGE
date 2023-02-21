@@ -21,8 +21,8 @@ class Texture:
 
     def get_playback_data(self):
         if self.image.type == "movie":
-            return {"active":self.image.active,
-                    "time":self.image.video.get_pts(),
-                    "volume":self.image.video.get_volume(),
-                    "paused":self.image.video.get_pause(),
-                    "size":self.image.size}
+            return {"active": self.image.active,
+                    "time": self.image.video.get_pts(),
+                    "volume": self.image.video.get_volume(),
+                    "paused": self.image.video.get_pause(),
+                    "size": self.image.size}

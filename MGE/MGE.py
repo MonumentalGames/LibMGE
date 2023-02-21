@@ -1,109 +1,13 @@
 import pygame
-from PIL import Image as PIL_Image
 
 from .Window import Screen
+from .Global_Cache import Cache
+from .Version import version_print
 from .Keyboard import keyboard
 from .Platform import Platform
 
-if not Platform.system == "Android":
-    from OpenGL.GL import *
-    from OpenGL.GLU import *
-
-class MGE_ver:
-    version = "0.1"
-    build = "12"
-    phase = "Beta"
-
-class Cache:
-    class Temp:
-        class Screen:
-
-            class IMG:
-                def __init__(self, img=None):
-                    if img is not None:
-                        self.image = img
-                        image_size = self.image.get_size()
-
-                        #res = 480 / image_size[1]
-                        #image_size = (int(res * image_size[0]), int(res * image_size[1]))
-
-                        raw_str = pygame.image.tostring(pygame.transform.scale(self.image, image_size), "RGB", False)
-                        self.image = PIL_Image.frombytes("RGB", image_size, raw_str)
-                        self.size = self.image.size
-                    else:
-                        self.image = PIL_Image.new("RGB", (32, 32), color=(0, 0, 0))
-                        self.size = self.image.size
-
-                def set_img(self, img=None):
-                    if img is not None:
-                        self.image = img
-                        image_size = self.image.get_size()
-
-                        #res = 480 / image_size[1]
-                        #image_size = (int(res * image_size[0]), int(res * image_size[1]))
-
-                        raw_str = pygame.image.tostring(pygame.transform.scale(self.image, image_size), "RGB", False)
-                        self.image = PIL_Image.frombytes("RGB", image_size, raw_str)
-                        self.size = self.image.size
-                    else:
-                        self.image = PIL_Image.new("RGB", (32, 32), color=(0, 0, 0))
-                        self.size = self.image.size
-            img = IMG()
-
-        class Keyboard:
-            key_all_cache = True
-
-            key_specebar_cache = True
-            key_backspace_cache = True
-            key_period_cache = True
-
-            key_1_cache = True
-            key_2_cache = True
-            key_3_cache = True
-            key_4_cache = True
-            key_5_cache = True
-            key_6_cache = True
-            key_7_cache = True
-            key_8_cache = True
-            key_9_cache = True
-            key_0_cache = True
-
-            key_a_cache = True
-            key_b_cache = True
-            key_c_cache = True
-            key_d_cache = True
-            key_e_cache = True
-            key_f_cache = True
-            key_g_cache = True
-            key_h_cache = True
-            key_i_cache = True
-            key_j_cache = True
-            key_k_cache = True
-            key_l_cache = True
-            key_m_cache = True
-            key_n_cache = True
-            key_o_cache = True
-            key_p_cache = True
-            key_q_cache = True
-            key_r_cache = True
-            key_s_cache = True
-            key_t_cache = True
-            key_u_cache = True
-            key_v_cache = True
-            key_w_cache = True
-            key_x_cache = True
-            key_y_cache = True
-            key_z_cache = True
-
-            key_up_cache = True
-            key_left_cache = True
-            key_right_cache = True
-
-        class Button:
-            button_active = False
-
-    class Mouse_Button:
-        button_cache = [False, False, False, False, False]
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
 class Object_Program:
 
@@ -112,9 +16,6 @@ class Object_Program:
         cursor = 0
 
     def __init__(self):
-        pygame.init()
-        pygame.font.init()
-
         self.screen = Screen()
         self.event = pygame.event.poll()
         self.time = {"mon": 0, "day": 0, "hours": 0, "min": 0, "sec": 0}
@@ -124,6 +25,12 @@ class Object_Program:
         self.default_font = pygame.font.get_default_font()
 
         #Cache.Temp.Screen.img = Image(pygame.Surface.convert(self.screen.screen))
+
+    def init(self):
+        self.pygame.init()
+        self.pygame.font.init()
+        self.set_caption("MGE")
+        version_print()
 
     def update(self, still_frame_optimization: bool = False, save_last_rendered_frame: bool = True):
         if not self.clock == 0:
@@ -135,8 +42,8 @@ class Object_Program:
         self.Temp.Resolution = list(self.screen.screen.get_size())
         self.event = pygame.event.poll()
 
-        if Cache.Temp.Button.button_active:
-            Cache.Temp.Button.button_active = False
+        if Cache.Temp.Button["button_active"]:
+            Cache.Temp.Button["button_active"] = False
 
         self.screen.render()
 

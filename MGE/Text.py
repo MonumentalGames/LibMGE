@@ -2,7 +2,8 @@ import pygame
 import pyperclip
 import threading
 from .Keyboard import keyboard
-from .MGE import Cache
+from .Global_Cache import Cache
+from .Key_Maps import Key_Input_Map
 
 class ObjectText:
     def __init__(self, localization, size: int, text: str = "", font=pygame.font.get_default_font()):
@@ -192,488 +193,65 @@ class ObjectText:
                 if self.text:
                     screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
 
-def text_box(text: str, type: str = "all"):
+def text_box(text: str, type: str = "all", copy_and_paste: bool = True):
     if type == "all":
-        set_text = [True, True, True]
+        set_text = list(Key_Input_Map.keys())
     elif type == "number":
-        set_text = [False, True, False]
+        set_text = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "period"]
     else:
-        set_text = [False, False, False]
+        print(f"Error (unrecognized_type)")
+        return ""
 
-    if keyboard("ctrl"):
-        if keyboard("v"):
-            if Cache.Temp.Keyboard.key_v_cache:
-                text += pyperclip.paste()
-                Cache.Temp.Keyboard.key_v_cache = False
-        else:
-            Cache.Temp.Keyboard.key_v_cache = True
-
-        if keyboard("c"):
-            if Cache.Temp.Keyboard.key_c_cache:
-                #text += pyperclip.paste()
-                Cache.Temp.Keyboard.key_c_cache = False
-        else:
-            Cache.Temp.Keyboard.key_c_cache = True
-
-    if set_text[0]:
-        if keyboard("shift"):
-
-            if keyboard("a"):
-                if Cache.Temp.Keyboard.key_a_cache:
-                    text += "A"
-                    Cache.Temp.Keyboard.key_a_cache = False
-            else:
-                Cache.Temp.Keyboard.key_a_cache = True
-
-            if keyboard("b"):
-                if Cache.Temp.Keyboard.key_b_cache:
-                    text += "B"
-                    Cache.Temp.Keyboard.key_b_cache = False
-            else:
-                Cache.Temp.Keyboard.key_b_cache = True
-
-            if keyboard("c"):
-                if Cache.Temp.Keyboard.key_c_cache:
-                    text += "C"
-                    Cache.Temp.Keyboard.key_c_cache = False
-            else:
-                Cache.Temp.Keyboard.key_c_cache = True
-
-            if keyboard("d"):
-                if Cache.Temp.Keyboard.key_d_cache:
-                    text += "D"
-                    Cache.Temp.Keyboard.key_d_cache = False
-            else:
-                Cache.Temp.Keyboard.key_d_cache = True
-
-            if keyboard("e"):
-                if Cache.Temp.Keyboard.key_e_cache:
-                    text += "E"
-                    Cache.Temp.Keyboard.key_e_cache = False
-            else:
-                Cache.Temp.Keyboard.key_e_cache = True
-
-            if keyboard("f"):
-                if Cache.Temp.Keyboard.key_f_cache:
-                    text += "F"
-                    Cache.Temp.Keyboard.key_f_cache = False
-            else:
-                Cache.Temp.Keyboard.key_f_cache = True
-
-            if keyboard("g"):
-                if Cache.Temp.Keyboard.key_g_cache:
-                    text += "G"
-                    Cache.Temp.Keyboard.key_g_cache = False
-            else:
-                Cache.Temp.Keyboard.key_g_cache = True
-
-            if keyboard("h"):
-                if Cache.Temp.Keyboard.key_h_cache:
-                    text += "H"
-                    Cache.Temp.Keyboard.key_h_cache = False
-            else:
-                Cache.Temp.Keyboard.key_h_cache = True
-
-            if keyboard("i"):
-                if Cache.Temp.Keyboard.key_i_cache:
-                    text += "I"
-                    Cache.Temp.Keyboard.key_i_cache = False
-            else:
-                Cache.Temp.Keyboard.key_i_cache = True
-
-            if keyboard("j"):
-                if Cache.Temp.Keyboard.key_j_cache:
-                    text += "J"
-                    Cache.Temp.Keyboard.key_j_cache = False
-            else:
-                Cache.Temp.Keyboard.key_j_cache = True
-
-            if keyboard("k"):
-                if Cache.Temp.Keyboard.key_k_cache:
-                    text += "K"
-                    Cache.Temp.Keyboard.key_k_cache = False
-            else:
-                Cache.Temp.Keyboard.key_k_cache = True
-
-            if keyboard("l"):
-                if Cache.Temp.Keyboard.key_l_cache:
-                    text += "L"
-                    Cache.Temp.Keyboard.key_l_cache = False
-            else:
-                Cache.Temp.Keyboard.key_l_cache = True
-
-            if keyboard("m"):
-                if Cache.Temp.Keyboard.key_m_cache:
-                    text += "M"
-                    Cache.Temp.Keyboard.key_m_cache = False
-            else:
-                Cache.Temp.Keyboard.key_m_cache = True
-
-            if keyboard("n"):
-                if Cache.Temp.Keyboard.key_n_cache:
-                    text += "N"
-                    Cache.Temp.Keyboard.key_n_cache = False
-            else:
-                Cache.Temp.Keyboard.key_n_cache = True
-
-            if keyboard("o"):
-                if Cache.Temp.Keyboard.key_o_cache:
-                    text += "O"
-                    Cache.Temp.Keyboard.key_o_cache = False
-            else:
-                Cache.Temp.Keyboard.key_o_cache = True
-
-            if keyboard("p"):
-                if Cache.Temp.Keyboard.key_p_cache:
-                    text += "P"
-                    Cache.Temp.Keyboard.key_p_cache = False
-            else:
-                Cache.Temp.Keyboard.key_p_cache = True
-
-            if keyboard("q"):
-                if Cache.Temp.Keyboard.key_q_cache:
-                    text += "Q"
-                    Cache.Temp.Keyboard.key_q_cache = False
-            else:
-                Cache.Temp.Keyboard.key_q_cache = True
-
-            if keyboard("r"):
-                if Cache.Temp.Keyboard.key_r_cache:
-                    text += "R"
-                    Cache.Temp.Keyboard.key_r_cache = False
-            else:
-                Cache.Temp.Keyboard.key_r_cache = True
-
-            if keyboard("s"):
-                if Cache.Temp.Keyboard.key_s_cache:
-                    text += "S"
-                    Cache.Temp.Keyboard.key_s_cache = False
-            else:
-                Cache.Temp.Keyboard.key_s_cache = True
-
-            if keyboard("t"):
-                if Cache.Temp.Keyboard.key_t_cache:
-                    text += "T"
-                    Cache.Temp.Keyboard.key_t_cache = False
-            else:
-                Cache.Temp.Keyboard.key_t_cache = True
-
-            if keyboard("u"):
-                if Cache.Temp.Keyboard.key_u_cache:
-                    text += "U"
-                    Cache.Temp.Keyboard.key_u_cache = False
-            else:
-                Cache.Temp.Keyboard.key_u_cache = True
-
+    if copy_and_paste:
+        if keyboard("ctrl"):
             if keyboard("v"):
-                if Cache.Temp.Keyboard.key_v_cache:
-                    text += "V"
-                    Cache.Temp.Keyboard.key_v_cache = False
+                if Cache.Temp.Keyboard["key_v_cache"]["press"]:
+                    text += pyperclip.paste()
+                    Cache.Temp.Keyboard["key_v_cache"]["press"] = False
+                    return "".join(text)
             else:
-                Cache.Temp.Keyboard.key_v_cache = True
-
-            if keyboard("w"):
-                if Cache.Temp.Keyboard.key_w_cache:
-                    text += "W"
-                    Cache.Temp.Keyboard.key_w_cache = False
+                Cache.Temp.Keyboard["key_v_cache"]["press"] = True
+            if keyboard("c"):
+                if Cache.Temp.Keyboard["key_c_cache"]["press"]:
+                    pyperclip.copy(text)
+                    Cache.Temp.Keyboard["key_c_cache"]["press"] = False
+                    return "".join(text)
             else:
-                Cache.Temp.Keyboard.key_w_cache = True
+                Cache.Temp.Keyboard["key_c_cache"]["press"] = True
 
-            if keyboard("x"):
-                if Cache.Temp.Keyboard.key_x_cache:
-                    text += "X"
-                    Cache.Temp.Keyboard.key_x_cache = False
-            else:
-                Cache.Temp.Keyboard.key_x_cache = True
-
-            if keyboard("y"):
-                if Cache.Temp.Keyboard.key_y_cache:
-                    text += "Y"
-                    Cache.Temp.Keyboard.key_y_cache = False
-            else:
-                Cache.Temp.Keyboard.key_y_cache = True
-
-            if keyboard("z"):
-                if Cache.Temp.Keyboard.key_z_cache:
-                    text += "Z"
-                    Cache.Temp.Keyboard.key_z_cache = False
-            else:
-                Cache.Temp.Keyboard.key_z_cache = True
-
-        if keyboard("a"):
-            if Cache.Temp.Keyboard.key_a_cache:
-                text += "a"
-                Cache.Temp.Keyboard.key_a_cache = False
+    for key in set_text:
+        cache_key = Key_Input_Map[key]
+        if keyboard(key):
+            if Cache.Temp.Keyboard[cache_key]["press"]:
+                if key == "space":
+                    text += " "
+                    Cache.Temp.Keyboard[cache_key]["press"] = False
+                elif key == "period":
+                    text += "."
+                    Cache.Temp.Keyboard[cache_key]["press"] = False
+                else:
+                    if pygame.key.get_mods() & 8192:
+                        if keyboard("shift"):
+                            text += key.lower()
+                        else:
+                            text += key.upper()
+                    else:
+                        if keyboard("shift"):
+                            text += key.upper()
+                        else:
+                            text += key.lower()
+                    Cache.Temp.Keyboard[cache_key]["press"] = False
         else:
-            Cache.Temp.Keyboard.key_a_cache = True
-
-        if keyboard("b"):
-            if Cache.Temp.Keyboard.key_b_cache:
-                text += "b"
-                Cache.Temp.Keyboard.key_b_cache = False
-        else:
-            Cache.Temp.Keyboard.key_b_cache = True
-
-        if keyboard("c"):
-            if Cache.Temp.Keyboard.key_c_cache:
-                text += "c"
-                Cache.Temp.Keyboard.key_c_cache = False
-        else:
-            Cache.Temp.Keyboard.key_c_cache = True
-
-        if keyboard("d"):
-            if Cache.Temp.Keyboard.key_d_cache:
-                text += "d"
-                Cache.Temp.Keyboard.key_d_cache = False
-        else:
-            Cache.Temp.Keyboard.key_d_cache = True
-
-        if keyboard("e"):
-            if Cache.Temp.Keyboard.key_e_cache:
-                text += "e"
-                Cache.Temp.Keyboard.key_e_cache = False
-        else:
-            Cache.Temp.Keyboard.key_e_cache = True
-
-        if keyboard("f"):
-            if Cache.Temp.Keyboard.key_f_cache:
-                text += "f"
-                Cache.Temp.Keyboard.key_f_cache = False
-        else:
-            Cache.Temp.Keyboard.key_f_cache = True
-
-        if keyboard("g"):
-            if Cache.Temp.Keyboard.key_g_cache:
-                text += "g"
-                Cache.Temp.Keyboard.key_g_cache = False
-        else:
-            Cache.Temp.Keyboard.key_g_cache = True
-
-        if keyboard("h"):
-            if Cache.Temp.Keyboard.key_h_cache:
-                text += "h"
-                Cache.Temp.Keyboard.key_h_cache = False
-        else:
-            Cache.Temp.Keyboard.key_h_cache = True
-
-        if keyboard("i"):
-            if Cache.Temp.Keyboard.key_i_cache:
-                text += "i"
-                Cache.Temp.Keyboard.key_i_cache = False
-        else:
-            Cache.Temp.Keyboard.key_i_cache = True
-
-        if keyboard("j"):
-            if Cache.Temp.Keyboard.key_j_cache:
-                text += "j"
-                Cache.Temp.Keyboard.key_j_cache = False
-        else:
-            Cache.Temp.Keyboard.key_j_cache = True
-
-        if keyboard("k"):
-            if Cache.Temp.Keyboard.key_k_cache:
-                text += "k"
-                Cache.Temp.Keyboard.key_k_cache = False
-        else:
-            Cache.Temp.Keyboard.key_k_cache = True
-
-        if keyboard("l"):
-            if Cache.Temp.Keyboard.key_l_cache:
-                text += "l"
-                Cache.Temp.Keyboard.key_l_cache = False
-        else:
-            Cache.Temp.Keyboard.key_l_cache = True
-
-        if keyboard("m"):
-            if Cache.Temp.Keyboard.key_m_cache:
-                text += "m"
-                Cache.Temp.Keyboard.key_m_cache = False
-        else:
-            Cache.Temp.Keyboard.key_m_cache = True
-
-        if keyboard("n"):
-            if Cache.Temp.Keyboard.key_n_cache:
-                text += "n"
-                Cache.Temp.Keyboard.key_n_cache = False
-        else:
-            Cache.Temp.Keyboard.key_n_cache = True
-
-        if keyboard("o"):
-            if Cache.Temp.Keyboard.key_o_cache:
-                text += "o"
-                Cache.Temp.Keyboard.key_o_cache = False
-        else:
-            Cache.Temp.Keyboard.key_o_cache = True
-
-        if keyboard("p"):
-            if Cache.Temp.Keyboard.key_p_cache:
-                text += "p"
-                Cache.Temp.Keyboard.key_p_cache = False
-        else:
-            Cache.Temp.Keyboard.key_p_cache = True
-
-        if keyboard("q"):
-            if Cache.Temp.Keyboard.key_q_cache:
-                text += "q"
-                Cache.Temp.Keyboard.key_q_cache = False
-        else:
-            Cache.Temp.Keyboard.key_q_cache = True
-
-        if keyboard("r"):
-            if Cache.Temp.Keyboard.key_r_cache:
-                text += "r"
-                Cache.Temp.Keyboard.key_r_cache = False
-        else:
-            Cache.Temp.Keyboard.key_r_cache = True
-
-        if keyboard("s"):
-            if Cache.Temp.Keyboard.key_s_cache:
-                text += "s"
-                Cache.Temp.Keyboard.key_s_cache = False
-        else:
-            Cache.Temp.Keyboard.key_s_cache = True
-
-        if keyboard("t"):
-            if Cache.Temp.Keyboard.key_t_cache:
-                text += "t"
-                Cache.Temp.Keyboard.key_t_cache = False
-        else:
-            Cache.Temp.Keyboard.key_t_cache = True
-
-        if keyboard("u"):
-            if Cache.Temp.Keyboard.key_u_cache:
-                text += "u"
-                Cache.Temp.Keyboard.key_u_cache = False
-        else:
-            Cache.Temp.Keyboard.key_u_cache = True
-
-        if keyboard("v"):
-            if Cache.Temp.Keyboard.key_v_cache:
-                text += "v"
-                Cache.Temp.Keyboard.key_v_cache = False
-        else:
-            Cache.Temp.Keyboard.key_v_cache = True
-
-        if keyboard("w"):
-            if Cache.Temp.Keyboard.key_w_cache:
-                text += "w"
-                Cache.Temp.Keyboard.key_w_cache = False
-        else:
-            Cache.Temp.Keyboard.key_w_cache = True
-
-        if keyboard("x"):
-            if Cache.Temp.Keyboard.key_x_cache:
-                text += "x"
-                Cache.Temp.Keyboard.key_x_cache = False
-        else:
-            Cache.Temp.Keyboard.key_x_cache = True
-
-        if keyboard("y"):
-            if Cache.Temp.Keyboard.key_y_cache:
-                text += "y"
-                Cache.Temp.Keyboard.key_y_cache = False
-        else:
-            Cache.Temp.Keyboard.key_y_cache = True
-
-        if keyboard("z"):
-            if Cache.Temp.Keyboard.key_z_cache:
-                text += "z"
-                Cache.Temp.Keyboard.key_z_cache = False
-        else:
-            Cache.Temp.Keyboard.key_z_cache = True
-
-
-
-        if keyboard("space"):
-            if Cache.Temp.Keyboard.key_specebar_cache:
-                text += " "
-                Cache.Temp.Keyboard.key_specebar_cache = False
-        else:
-            Cache.Temp.Keyboard.key_specebar_cache = True
-
-    if set_text[1]:
-        if keyboard("1"):
-            if Cache.Temp.Keyboard.key_1_cache:
-                text += "1"
-                Cache.Temp.Keyboard.key_1_cache = False
-        else:
-            Cache.Temp.Keyboard.key_1_cache = True
-
-        if keyboard("2"):
-            if Cache.Temp.Keyboard.key_2_cache:
-                text += "2"
-                Cache.Temp.Keyboard.key_2_cache = False
-        else:
-            Cache.Temp.Keyboard.key_2_cache = True
-
-        if keyboard("3"):
-            if Cache.Temp.Keyboard.key_3_cache:
-                text += "3"
-                Cache.Temp.Keyboard.key_3_cache = False
-        else:
-            Cache.Temp.Keyboard.key_3_cache = True
-
-        if keyboard("4"):
-            if Cache.Temp.Keyboard.key_4_cache:
-                text += "4"
-                Cache.Temp.Keyboard.key_4_cache = False
-        else:
-            Cache.Temp.Keyboard.key_4_cache = True
-
-        if keyboard("5"):
-            if Cache.Temp.Keyboard.key_5_cache:
-                text += "5"
-                Cache.Temp.Keyboard.key_5_cache = False
-        else:
-            Cache.Temp.Keyboard.key_5_cache = True
-
-        if keyboard("6"):
-            if Cache.Temp.Keyboard.key_6_cache:
-                text += "6"
-                Cache.Temp.Keyboard.key_6_cache = False
-        else:
-            Cache.Temp.Keyboard.key_6_cache = True
-
-        if keyboard("7"):
-            if Cache.Temp.Keyboard.key_7_cache:
-                text += "7"
-                Cache.Temp.Keyboard.key_7_cache = False
-        else:
-            Cache.Temp.Keyboard.key_7_cache = True
-
-        if keyboard("8"):
-            if Cache.Temp.Keyboard.key_8_cache:
-                text += "8"
-                Cache.Temp.Keyboard.key_8_cache = False
-        else:
-            Cache.Temp.Keyboard.key_8_cache = True
-
-        if keyboard("9"):
-            if Cache.Temp.Keyboard.key_9_cache:
-                text += "9"
-                Cache.Temp.Keyboard.key_9_cache = False
-        else:
-            Cache.Temp.Keyboard.key_9_cache = True
-
-        if keyboard("0"):
-            if Cache.Temp.Keyboard.key_0_cache:
-                text += "0"
-                Cache.Temp.Keyboard.key_0_cache = False
-        else:
-            Cache.Temp.Keyboard.key_0_cache = True
-
-        if keyboard("period"):
-            if Cache.Temp.Keyboard.key_period_cache:
-                text += "."
-                Cache.Temp.Keyboard.key_period_cache = False
-        else:
-            Cache.Temp.Keyboard.key_period_cache = True
+            Cache.Temp.Keyboard[cache_key]["press"] = True
 
     if keyboard("back"):
-        if Cache.Temp.Keyboard.key_backspace_cache:
+        if Cache.Temp.Keyboard["key_backspace_cache"]["press"] or Cache.Temp.Keyboard["key_backspace_cache"]["time"] == 100:
             text = text[:-1]
-            Cache.Temp.Keyboard.key_backspace_cache = False
+            Cache.Temp.Keyboard["key_backspace_cache"]["press"] = False
+        else:
+            Cache.Temp.Keyboard["key_backspace_cache"]["time"] += 1
     else:
-        Cache.Temp.Keyboard.key_backspace_cache = True
+        Cache.Temp.Keyboard["key_backspace_cache"]["press"] = True
+        Cache.Temp.Keyboard["key_backspace_cache"]["time"] = 0
 
-    return str(text)
+    return "".join(text)

@@ -2,7 +2,7 @@ import pygame
 from pygame._sdl2 import Window, Renderer
 from pygame._sdl2 import messagebox as mess
 
-#from .Camera import Camera
+from .Camera import Camera
 
 class Outside_Window:
     def __init__(self, localization: list, size: list):
