@@ -1,9 +1,12 @@
 import pygame
-import pyperclip
 import threading
 from .Keyboard import keyboard
 from .Global_Cache import Cache
 from .Key_Maps import Key_Input_Map
+from .Platform import Platform
+
+if not Platform.system == "Android":
+    import pyperclip
 
 class ObjectText:
     def __init__(self, localization, size: int, text: str = "", font=pygame.font.get_default_font()):
@@ -92,89 +95,35 @@ class ObjectText:
 
     def draw_object(self, screen, render: bool):
         loc_camera = screen.camera.get_location()
-        if screen.get_screen_type() == "main":
-            size_screen = screen.screen.get_size()
-            cache_localization = self.localization
+        size_screen = screen.screen.get_size()
+        cache_screen_localization = [0, 0]
+        cache_size = self.size
+        cache_localization = self.localization
 
-            if "%" in str(cache_localization[0]):
-                cache_000 = str(cache_localization[0]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_localization = (size_screen[0] / 100 * cache_000, cache_localization[1])
-            if "%" in str(cache_localization[1]):
-                cache_000 = str(cache_localization[1]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_localization = [cache_localization[0], size_screen[1] / 100 * cache_000]
-
-            if cache_localization[0] == "center_obj":
-                cache_localization[0] = (size_screen[0] - self.text_render_size[0]) / 2
-            if cache_localization[1] == "center_obj":
-                cache_localization[1] = (size_screen[1] - self.text_render_size[1]) / 2
-
-            try:
-                cache_localization = [cache_localization[0] + loc_camera[0], cache_localization[1] + loc_camera[1]]
-            except TypeError:
-                print("Error")
-                cache_localization = [0, 0]
-        elif screen.get_screen_type() == "Internal":
-            size_screen = screen.screen.get_size()
-
+        if screen.__Window_Type__ == "Internal":
             cache_screen_size = screen.size
             cache_screen_localization = screen.localization
 
-            cache_size = self.size
-            cache_localization = self.localization
+            for number in range(2):
+                if "%" in str(cache_screen_size[number]):
+                    cache_screen_size[number] = size_screen[number] / 100 * int(str(cache_screen_size[number]).replace("%", ""))
 
-            if "%" in str(cache_screen_localization[0]):
-                cache_000 = str(cache_screen_localization[0]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_screen_localization = (size_screen[0] / 100 * cache_000, cache_screen_localization[1])
-            if "%" in str(cache_screen_localization[1]):
-                cache_000 = str(cache_screen_localization[1]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_screen_localization = [cache_screen_localization[0], size_screen[1] / 100 * cache_000]
+            for number in range(2):
+                if "%" in str(cache_screen_localization[number]):
+                    cache_screen_localization[number] = size_screen[number] / 100 * int(str(cache_screen_localization[number]).replace("%", ""))
+                elif cache_screen_localization[number] == "center_obj":
+                    cache_screen_localization[number] = (size_screen[number] - cache_screen_size[number]) / 2
 
-            if "%" in str(cache_screen_size[0]):
-                cache_000 = str(cache_screen_size[0]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_screen_size = (size_screen[0] / 100 * cache_000, cache_screen_size[1])
-            if "%" in str(cache_screen_size[1]):
-                cache_000 = str(cache_screen_size[1]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_screen_size = (cache_screen_size[0], size_screen[1] / 100 * cache_000)
+        if "%" in str(cache_size):
+            cache_size = size_screen[0] / 100 * int(str(cache_size).replace("%", ""))
 
-            if cache_screen_localization[0] == "center_obj":
-                cache_screen_localization[0] = (size_screen[0] - cache_screen_size[0]) / 2
-            if cache_screen_localization[1] == "center_obj":
-                cache_screen_localization[1] = (size_screen[1] - cache_screen_size[1]) / 2
+        for number in range(2):
+            if "%" in str(cache_localization[number]):
+                cache_localization[number] = size_screen[number] / 100 * int(str(cache_localization[number]).replace("%", ""))
+            elif cache_localization[number] == "center_obj":
+                cache_localization[number] = (size_screen[number] - self.text_render_size[number]) / 2
 
-            ##-----------------------------------------------------##
-
-            if "%" in str(cache_localization[0]):
-                cache_000 = str(cache_localization[0]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_localization = (size_screen[0] / 100 * cache_000, cache_localization[1])
-            if "%" in str(cache_localization[1]):
-                cache_000 = str(cache_localization[1]).replace("%", "")
-                cache_000 = int(cache_000)
-                cache_localization = [cache_localization[0], size_screen[1] / 100 * cache_000]
-
-            if cache_localization[0] == "center_obj":
-                cache_localization[0] = (size_screen[0] - cache_size[0]) / 2
-            if cache_localization[1] == "center_obj":
-                cache_localization[1] = (size_screen[1] - cache_size[1]) / 2
-
-            try:
-                cache_localization = [cache_localization[0] + loc_camera[0], cache_localization[1] + loc_camera[1]]
-                cache_localization = [cache_localization[0] + cache_screen_localization[0], cache_localization[1] + cache_screen_localization[1]]
-            except TypeError:
-                print("Error")
-                cache_localization = screen.localization
-        else:
-            try:
-                cache_localization = [self.localization[0] + loc_camera[0], self.localization[1] + loc_camera[1]]
-            except TypeError:
-                print("Error")
-                cache_localization = [0, 0]
+        cache_localization = [cache_localization[0] + loc_camera[0] + cache_screen_localization[0], cache_localization[1] + loc_camera[1] + cache_screen_localization[1]]
 
         if not self.threading.is_alive():
             if render:
@@ -193,6 +142,10 @@ class ObjectText:
                 if self.text:
                     screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
 
+class ObjectTextBox:
+    def __init__(self):
+        pass
+
 def text_box(text: str, type: str = "all", copy_and_paste: bool = True):
     if type == "all":
         set_text = list(Key_Input_Map.keys())
@@ -202,7 +155,7 @@ def text_box(text: str, type: str = "all", copy_and_paste: bool = True):
         print(f"Error (unrecognized_type)")
         return ""
 
-    if copy_and_paste:
+    if copy_and_paste and not Platform.system == "Android":
         if keyboard("ctrl"):
             if keyboard("v"):
                 if Cache.Temp.Keyboard["key_v_cache"]["press"]:

@@ -15,11 +15,9 @@ if system() == "Windows":
 elif system() == "Linux":
     if 'ANDROID_BOOTLOGO' in environ:
         Platform.system = "Android"
-        print("Error ('Unsupported Platform')")
-        sys.exit()
+        #print("Error ('Unsupported Platform')")
+        #sys.exit()
     else:
         Platform.system = "Linux"
 else:
     Platform.system = system()
-
-#print(Platform.drivers)

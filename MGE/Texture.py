@@ -1,7 +1,6 @@
 
 class Texture:
     def __init__(self, image=None):
-        #self.original_image = image
         if image is not None:
             if image.type == "simple image":
                 self.image = image

@@ -1,8 +1,12 @@
 import os
-import ffpyplayer.player
 import pymediainfo
 import pygame
 from PIL import Image as PIL_Image
+
+from .Platform import Platform
+
+if not Platform.system == "Android":
+    import ffpyplayer.player
 
 class Image:
     def __init__(self, directory_img=None, mode="RGB", size=(32, 32), color=(120, 120, 255)):
@@ -20,18 +24,19 @@ class Image:
                 elif self.path[-4:] == ".gif":
                     self.type = "gif"
                 elif self.path[-4:] == ".mp4":
-                    self.video = ffpyplayer.player.MediaPlayer(self.path)
+                    if not Platform.system == "Android":
+                        self.video = ffpyplayer.player.MediaPlayer(self.path)
 
-                    info = self.get_file_data()
+                        info = self.get_file_data()
 
-                    self.duration = info["duration"]
-                    self.frames = 0
-                    self.frame_delay = 1 / info["frame rate"]
-                    self.size = info["original size"]
-                    self.image = pygame.Surface((0, 0))
+                        self.duration = info["duration"]
+                        self.frames = 0
+                        self.frame_delay = 1 / info["frame rate"]
+                        self.size = info["original size"]
+                        self.image = pygame.Surface((0, 0))
 
-                    self.active = True
-                    self.type = "movie"
+                        self.active = True
+                        self.type = "movie"
                 else:
                     try:
                         self.image = self.image = PIL_Image.open(self.path)

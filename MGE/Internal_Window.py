@@ -1,11 +1,12 @@
 from .MGE import Program
-from .Window import Screen
 from .Camera import Camera
 
 pygame = Program.pygame
 
 class Internal_Window:
     def __init__(self, localization: list, size: list):
+        self.__Window_Type__ = "Internal"
+
         self.screen = Program.screen.screen
 
         self.localization = localization
@@ -15,6 +16,7 @@ class Internal_Window:
 
         self.camera = Camera()
 
+        self.sdl2 = False
         self.opengl = False
 
         self.render = False
@@ -26,43 +28,23 @@ class Internal_Window:
 
     def get_localization(self):
         size_screen = Program.screen.screen.get_size()
-        cache_localization = self.localization
+        cache_size = self.get_size()
+        cache_localization = self.localization.copy()
 
-        if "%" in str(cache_localization[0]):
-            cache_000 = str(cache_localization[0]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_localization = (size_screen[0] / 100 * cache_000, cache_localization[1])
-        if "%" in str(cache_localization[1]):
-            cache_000 = str(cache_localization[1]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_localization = [cache_localization[0], size_screen[1] / 100 * cache_000]
+        for number in range(2):
+            if "%" in str(cache_localization[number]):
+                cache_localization[number] = size_screen[number] / 100 * int(str(cache_localization[number]).replace("%", ""))
+            elif cache_localization[number] == "center_obj":
+                cache_localization[number] = (size_screen[number] - cache_size[number]) / 2
 
-        return cache_localization
+        return list(cache_localization)
 
     def get_size(self):
         size_screen = Program.screen.screen.get_size()
-        cache_size = self.size
+        cache_size = self.size.copy()
 
-        if "%" in str(cache_size[0]):
-            cache_000 = str(cache_size[0]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_size = (size_screen[0] / 100 * cache_000, cache_size[1])
-        if "%" in str(cache_size[1]):
-            cache_000 = str(cache_size[1]).replace("%", "")
-            cache_000 = int(cache_000)
-            cache_size = (cache_size[0], size_screen[1] / 100 * cache_000)
+        for number in range(2):
+            if "%" in str(cache_size[number]):
+                cache_size[number] = size_screen[number] / 100 * int(str(cache_size[number]).replace("%", ""))
 
-        #if self.scale:
-        #    if self.xy == "x":
-        #        res = cache_size[0] / self.scale[0]
-        #    elif self.xy == "y":
-        #        res = cache_size[1] / self.scale[1]
-        #    else:
-        #        res = 50
-        #    cache_size = (int(res * self.scale[0]), int(res * self.scale[1]))
-
-        return cache_size
-
-    @staticmethod
-    def get_screen_type():
-        return "Internal"
+        return list(cache_size)

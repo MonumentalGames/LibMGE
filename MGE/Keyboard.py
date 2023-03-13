@@ -6,7 +6,8 @@ def keyboard(key):
     event_key = pygame.key.get_pressed()
 
     if key == "all":
-        return any(event_key)
+        if True in event_key:
+            return True
 
     if key in Key_Map:
         if isinstance(Key_Map[key], int):
