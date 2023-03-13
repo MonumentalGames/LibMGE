@@ -1,3 +1,3 @@
 # MGE
 
-Beta Version: 0.1.27
+Beta Version: 0.1.42
