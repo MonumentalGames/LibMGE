@@ -1,5 +1,4 @@
 import pygame
-#import pyaudio
 import os
 
 class Audio:
@@ -11,14 +10,14 @@ class Audio:
             if os.path.exists(path):
                 self.sound = pygame.mixer.Sound(path)
             self.volume = 100
-            self.sound.set_volume((self.volume / 100) / 200 * audio.volume)
+            self.sound.set_volume((self.volume / 100) / 200 * Audio.volume)
 
         def set_volume(self, volume):
             self.volume = volume
-            self.sound.set_volume((self.volume / 100) / 200 * audio.volume)
+            self.sound.set_volume((self.volume / 100) / 200 * Audio.volume)
 
         def play(self, loops=-1):
-            self.sound.set_volume((self.volume / 100) / 200 * audio.volume)
+            self.sound.set_volume((self.volume / 100) / 200 * Audio.volume)
             self.sound.play(loops)
 
         def stop(self):
@@ -30,14 +29,14 @@ class Audio:
                 self.music = pygame.mixer.music
                 self.music.load(path)
             self.volume = 100
-            self.music.set_volume((self.volume / 100) / 200 * audio.volume)
+            self.music.set_volume((self.volume / 100) / 200 * Audio.volume)
 
         def set_volume(self, volume):
             self.volume = volume
-            self.music.set_volume((self.volume / 100) / 200 * audio.volume)
+            self.music.set_volume((self.volume / 100) / 200 * Audio.volume)
 
         def play(self, loops=-1):
-            self.music.set_volume((self.volume / 100) / 200 * audio.volume)
+            self.music.set_volume((self.volume / 100) / 200 * Audio.volume)
             #pygame.mixer.Channel(0).play(self.music)
             #pygame.mixer.Channel(0).p
             self.music.play(loops)

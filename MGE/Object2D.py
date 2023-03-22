@@ -62,7 +62,7 @@ class Object2D:
             pass
         else:
             if self.material.texture or 254 >= self.material.alpha >= 0 or self.rotation > 0 or not self.Mesh.Mesh == plane:
-                if not self.material.object_render or not self.object_render or self.always_render:
+                if not self.material.object_render or self.material.always_render or not self.object_render or self.always_render:
                     if self.material.texture:
                         self.material.render()
                         img_cache = self.material.Surface
