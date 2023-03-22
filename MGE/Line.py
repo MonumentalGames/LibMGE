@@ -14,14 +14,13 @@ class Line:
         else:
             loc_camera = screen.camera.get_location()
         size_screen = screen.get_size()
+        cache_screen_localization = [0, 0]
         cache_start = list(self.start).copy()
         cache_end = list(self.end).copy()
         cache_size = list(self.size).copy()
 
         if screen.__Window_Type__ == "Internal":
             cache_screen_localization = screen.get_localization()
-        else:
-            cache_screen_localization = [0, 0]
 
         if "%" in str(cache_size):
             cache_size = size_screen[0] / 100 * int(str(cache_size).replace("%", ""))

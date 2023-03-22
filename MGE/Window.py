@@ -11,6 +11,9 @@ if not Platform.system == "Android" and not Platform.system == "Linux":
 
 mode_flags = {"NOFRAME": 32, "RESIZABLE": 16, "FULLSCREEN": -2147483648}
 
+class Screen_inputs:
+    quit = 256
+
 class Screen:
     def __init__(self, sdl2: bool = False):
         self.__Window_Type__ = "main"

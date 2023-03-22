@@ -38,13 +38,12 @@ class Object2D:
         else:
             loc_camera = screen.camera.get_location()
         size_screen = screen.get_size()
+        cache_screen_localization = [0, 0]
         cache_size = list(self.size).copy()
         cache_localization = list(self.localization).copy()
 
         if screen.__Window_Type__ == "Internal":
             cache_screen_localization = screen.get_localization()
-        else:
-            cache_screen_localization = [0, 0]
 
         for number in range(2):
             if "%" in str(cache_size[number]):

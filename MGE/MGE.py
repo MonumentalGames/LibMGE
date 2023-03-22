@@ -16,16 +16,17 @@ class Object_Program:
     def __init__(self):
         self.screen = None
         self.event = None
-        self.time = {"mon": 0, "day": 0, "hours": 0, "min": 0, "sec": 0}
+        #self.time = {"mon": 0, "day": 0, "hours": 0, "min": 0, "sec": 0}
         self.clock = 0
         self.pygame = pygame
         self.default_font = None
 
-    def init(self, title=None, sdl2: bool = False):
+    def init(self, title=None):
+        #sdl2: bool = False
         self.pygame.init()
         self.pygame.font.init()
 
-        self.screen = Screen(sdl2=sdl2)
+        self.screen = Screen()
         self.event = pygame.event.poll()
 
         self.default_font = pygame.font.get_default_font()
