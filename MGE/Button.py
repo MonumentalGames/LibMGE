@@ -19,7 +19,7 @@ class Button:
         self.object_text_color_over = text_color_over
         self.object_text_color_not_over = text_color_not_over
 
-    def draw_button(self, screen):
+    def draw_button(self, screen, camera=None):
         if (self.object_2d.over(screen) or self.cache_checkbox) and not Cache.Temp.Button["button_active"] and self.button_active:
             self.button_active = False
             self.object_2d.set_material(self.object_2d_material_over)
@@ -30,7 +30,7 @@ class Button:
             self.object_2d.set_material(self.object_2d_material_not_over)
             if self.object_text is not None:
                 self.object_text.set_color(self.object_text_color_not_over)
-        self.object_2d.draw_object(screen)
+        self.object_2d.draw_object(screen, camera)
 
         if self.object_text is not None:
             if self.text_align.lower() == "center":
@@ -41,7 +41,7 @@ class Button:
                 pass
             else:
                 self.object_text.set_localization((self.object_2d.get_localization()))
-            self.object_text.draw_object(screen, True)
+            self.object_text.draw_object(screen, camera, True)
 
     def button(self, button, screen, multiple_click=False, button_type=""):
         self.button_active = True

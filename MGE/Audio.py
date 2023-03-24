@@ -1,4 +1,5 @@
 import pygame
+import sys
 import os
 
 class Audio:
@@ -9,6 +10,8 @@ class Audio:
         def __init__(self, path):
             if os.path.exists(path):
                 self.sound = pygame.mixer.Sound(path)
+            else:
+                sys.exit("MGE-Error")
             self.volume = 100
             self.sound.set_volume((self.volume / 100) / 200 * Audio.volume)
 
@@ -25,8 +28,8 @@ class Audio:
 
     class Music:
         def __init__(self, path):
+            self.music = pygame.mixer.music
             if os.path.exists(path):
-                self.music = pygame.mixer.music
                 self.music.load(path)
             self.volume = 100
             self.music.set_volume((self.volume / 100) / 200 * Audio.volume)

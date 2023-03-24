@@ -4,10 +4,11 @@ from .MGE import Program
 from .Global_Cache import Cache
 
 from .Camera import Camera
+from .Window import Screen_inputs
 from .Internal_Window import Internal_Window
 #from .Outside_Window import Outside_Window
 
-from .Text import ObjectText, text_box
+from .Text import ObjectText, ObjectTextBox
 from .Object2D import Object2D, Pivot2D
 #from .Object3D import Object3D, Pivot3D
 from .Line import Line
