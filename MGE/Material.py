@@ -30,12 +30,15 @@ class Material:
                 self.Surface = pygame.image.fromstring(cache_img.tobytes(), cache_img.size, cache_img.mode)
             elif self.texture.image.type == "gif":
                 if self.surf_temp >= Program.get_fps() / self.texture.image.data_gif["fps"]:
-                    if self.n_surf <= len(self.texture.image.data_gif["data"]) - 1:
-                        self.Surface = self.texture.image.data_gif["data"][self.n_surf]
-                        self.n_surf += 1
+                    if len(self.texture.image.data_gif["data"]) > 1:
+                        if self.n_surf <= len(self.texture.image.data_gif["data"]) - 1:
+                            self.Surface = self.texture.image.data_gif["data"][self.n_surf]
+                            self.n_surf += 1
+                        else:
+                            self.Surface = self.texture.image.data_gif["data"][0]
+                            self.n_surf = 1
                     else:
-                        self.Surface = self.texture.image.data_gif["data"][0]
-                        self.n_surf = 1
+                        self.Surface = pygame.Surface((16, 16))
                     self.surf_temp = 0
                 self.surf_temp += 1
                 self.always_render = True
