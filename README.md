@@ -1,6 +1,6 @@
 # MGE
 
-Beta Version: 0.2.0
+Version: 0.2.0
 
 ## Dependencies
 - [pygame](https://pypi.org/project/pygame/)
