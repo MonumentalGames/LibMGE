@@ -70,9 +70,9 @@ class Object2D:
                         cache_object = pygame.Surface((cache_size[0], cache_size[1]))
                         cache_object.fill(self.material.color)
 
-                    self.cache_object = pygame.Surface(self.size, pygame.SRCALPHA)
+                    self.cache_object = pygame.Surface(cache_size, pygame.SRCALPHA)
                     if self.Mesh.Mesh == plane:
-                        pygame.draw.rect(self.cache_object, (255, 255, 255, 255), (0, 0, *self.size), border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
+                        pygame.draw.rect(self.cache_object, (255, 255, 255, 255), (0, 0, *cache_size), border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
                     else:
                         pygame.draw.polygon(self.cache_object, (255, 255, 255, 255), self.Mesh.get_mesh(cache_localization, self.scale))
                     self.cache_object.blit(cache_object, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
