@@ -1,7 +1,8 @@
 from .Global_Cache import Cache
+from .Material import Material
 
 class Button:
-    def __init__(self, object_2d, object_text=None, text_align="center", object_2d_material_not_over=None, object_2d_material_over=None, text_color_not_over=(200, 200, 200), text_color_over=(255, 255, 255)):
+    def __init__(self, object_2d, object_text=None, text_align="center", object_2d_material_not_over=Material(color=(50, 50, 50)), object_2d_material_over=Material(color=(45, 45, 45)), text_color_not_over=(200, 200, 200), text_color_over=(255, 255, 255)):
         self.object_2d = object_2d
 
         self.cache_checkbox = False
@@ -10,10 +11,9 @@ class Button:
 
         self.button_active = False
 
-        if object_2d_material_over is not None:
-            self.object_2d_material_over = object_2d_material_over
-        if object_2d_material_not_over is not None:
-            self.object_2d_material_not_over = object_2d_material_not_over
+        self.object_2d_material_over = object_2d_material_over
+        self.object_2d_material_not_over = object_2d_material_not_over
+
         self.object_text = object_text
         self.object_text_color_over = text_color_over
         self.object_text_color_not_over = text_color_not_over
