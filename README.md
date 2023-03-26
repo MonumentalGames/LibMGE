@@ -1,14 +1,15 @@
 # MGE
 
-Version: 0.2.0
+Version: 0.2.0  
+[other versions](https://github.com/lucas224112/MGE_Other_Versions)
 
 ## Dependencies
-- [pygame](https://pypi.org/project/pygame/)
-- [numpy](https://pypi.org/project/numpy/)
-- [pillow](https://pypi.org/project/Pillow/)
-- [opencv-python](https://pypi.org/project/opencv-python/)
-- [pyperclip](https://pypi.org/project/pyperclip/)
-- [screeninfo](https://pypi.org/project/screeninfo/)
+[pygame](https://pypi.org/project/pygame/) -
+[numpy](https://pypi.org/project/numpy/) -
+[pillow](https://pypi.org/project/Pillow/) -
+[opencv-python](https://pypi.org/project/opencv-python/) -
+[pyperclip](https://pypi.org/project/pyperclip/) -
+[screeninfo](https://pypi.org/project/screeninfo/)
 
 ## Example of use
 ```py
@@ -32,3 +33,7 @@ while True:
     MGE.Program.set_caption(f"Gif-MGE | FPS:{int(MGE.Program.get_fps())}")
     MGE.Program.update()
 ```
+
+- ### Another examples
+  [Open Gif](https://github.com/lucas224112/MGE_Open_Gif) - 
+  [Text Box](https://github.com/lucas224112/MGE_Text_Box)
