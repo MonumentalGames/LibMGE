@@ -27,7 +27,7 @@ class ObjectText:
 
         self.text_render = None
         self.text_render_font = None
-        self.text_render_size = None
+        self.text_render_size = [0, 0]
 
     def set_font(self, font):
         if not self.font == font:
@@ -79,32 +79,17 @@ class ObjectText:
         self.text_render = self.text_render_font.render(self.text, True, self.color)
         self.text_render_cache = True
 
-    def draw_object(self, screen, camera=None, render: bool = False):
+    def draw_object(self, screen, camera=None, render: bool = True):
         if camera is not None:
             loc_camera = camera.get_location()
         else:
             loc_camera = screen.camera.get_location()
         size_screen = screen.screen.get_size()
         cache_screen_localization = [0, 0]
-        cache_size = self.size
-        cache_localization = self.localization
+        cache_localization = list(self.localization)
 
         if screen.__Window_Type__ == "Internal":
-            cache_screen_size = screen.size
-            cache_screen_localization = screen.localization
-
-            for number in range(2):
-                if "%" in str(cache_screen_size[number]):
-                    cache_screen_size[number] = size_screen[number] / 100 * int(str(cache_screen_size[number]).replace("%", ""))
-
-            for number in range(2):
-                if "%" in str(cache_screen_localization[number]):
-                    cache_screen_localization[number] = size_screen[number] / 100 * int(str(cache_screen_localization[number]).replace("%", ""))
-                elif cache_screen_localization[number] == "center_obj":
-                    cache_screen_localization[number] = (size_screen[number] - cache_screen_size[number]) / 2
-
-        if "%" in str(cache_size):
-            cache_size = size_screen[0] / 100 * int(str(cache_size).replace("%", ""))
+            cache_screen_localization = screen.get_localization()
 
         for number in range(2):
             if "%" in str(cache_localization[number]):
@@ -118,18 +103,15 @@ class ObjectText:
             if render:
                 if self.text:
                     if self.text_render_cache:
-                        screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
+                        screen.screen.blit(self.text_render, cache_localization)
                     else:
                         self.threading_render()
                         if self.text_render_cache:
-                            screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
-                else:
-                    pass
+                            screen.screen.blit(self.text_render, cache_localization)
             else:
-                if not self.text_render_cache:
-                    pass
                 if self.text:
-                    screen.screen.blit(self.text_render, (cache_localization[0], cache_localization[1]))
+                    if self.text_render_cache:
+                        screen.screen.blit(self.text_render, cache_localization)
 
 class ObjectTextBox:
     def __init__(self, localization, size: int, text: str = "", default_text: str = "", font=Program.default_font):
@@ -248,7 +230,7 @@ class ObjectTextBox:
         else:
             self.ObjectText.set_text(self.text)
 
-    def draw_object(self, screen, camera=None, render: bool = False):
+    def draw_object(self, screen, camera=None, render: bool = True):
         self.ObjectText.draw_object(screen, camera, render)
 
     def clean_cache(self):

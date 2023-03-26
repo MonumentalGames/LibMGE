@@ -14,13 +14,12 @@ class Button:
             self.object_2d_material_over = object_2d_material_over
         if object_2d_material_not_over is not None:
             self.object_2d_material_not_over = object_2d_material_not_over
-        #if object_text is not None:
         self.object_text = object_text
         self.object_text_color_over = text_color_over
         self.object_text_color_not_over = text_color_not_over
 
     def draw_button(self, screen, camera=None):
-        if (self.object_2d.over(screen) or self.cache_checkbox) and not Cache.Temp.Button["button_active"] and self.button_active:
+        if (self.object_2d.over(screen, camera) or self.cache_checkbox) and not Cache.Temp.Button["button_active"] and self.button_active:
             self.button_active = False
             self.object_2d.set_material(self.object_2d_material_over)
             if self.object_text is not None:
@@ -35,39 +34,23 @@ class Button:
         if self.object_text is not None:
             if self.text_align.lower() == "center":
                 self.object_text.set_localization((self.object_2d.get_localization()[0] + (self.object_2d.get_size()[0] - self.object_text.get_text_size()[0]) / 2, self.object_2d.get_localization()[1] + (self.object_2d.get_size()[1] - self.object_text.get_text_size()[1]) / 2))
-            elif self.text_align.lower() == "":
-                pass
-            elif self.text_align.lower() == "":
-                pass
+            #elif self.text_align.lower() == "":
+            #    pass
             else:
                 self.object_text.set_localization((self.object_2d.get_localization()))
             self.object_text.draw_object(screen, camera, True)
 
-    def button(self, button, screen, multiple_click=False, button_type=""):
+    def button(self, button, screen, camera=None, multiple_click=False, button_type=""):
         self.button_active = True
         if button_type == "":
-            return self.object_2d.button(button, screen, multiple_click)
+            return self.object_2d.button(button, screen, camera, multiple_click)
         elif button_type == "checkbox":
-            if self.object_2d.button(button, screen):
+            if self.object_2d.button(button, screen, camera):
                 if self.cache_checkbox:
                     self.cache_checkbox = False
                 else:
                     self.cache_checkbox = True
             return self.cache_checkbox
 
-    def over(self, screen):
-        return self.object_2d.over(screen)
-
-    def set_all(self, object_2d=None, object_text=None, object_2d_material_not_over=None, object_2d_material_over=None, text_color_not_over=None, text_color_over=None):
-        if object_2d is not None:
-            self.object_2d = object_2d
-        if object_text is not None:
-            self.object_text = object_text
-        if object_2d_material_not_over is not None:
-            self.object_2d_material_not_over = object_2d_material_not_over
-        if object_2d_material_over is not None:
-            self.object_2d_material_over = object_2d_material_over
-        if text_color_not_over is not None:
-            self.object_text_color_not_over = text_color_not_over
-        if text_color_over is not None:
-            self.object_text_color_over = text_color_over
+    def over(self, screen, camera=None):
+        return self.object_2d.over(screen, camera)

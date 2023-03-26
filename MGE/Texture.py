@@ -6,8 +6,6 @@ class Texture:
                 self.image = image
             elif image.type == "gif":
                 self.image = image
-            #elif image.type == "movie":
-            #    self.image = image
             self.sprite = None
         elif sprite is not None:
             self.sprite = sprite
@@ -27,11 +25,3 @@ class Texture:
 
     def set_blurr(self, blurr):
         self.blurr = blurr
-
-    #def get_playback_data(self):
-    #    if self.image.type == "movie":
-    #        return {"active": self.image.active,
-    #                "time": self.image.video.get_pts(),
-    #                "volume": self.image.video.get_volume(),
-    #                "paused": self.image.video.get_pause(),
-    #                "size": self.image.size}

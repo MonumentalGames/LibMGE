@@ -117,16 +117,18 @@ class Object2D:
                 else:
                     pygame.draw.rect(screen.screen, self.material.get_color(), (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
 
-    def over(self, screen):
-        loc_camera = screen.camera.get_location()
+    def over(self, screen, camera=None):
+        if camera is not None:
+            loc_camera = camera.get_location()
+        else:
+            loc_camera = screen.camera.get_location()
         size_screen = screen.screen.get_size()
+        cache_screen_localization = [0, 0]
         cache_size = list(self.size).copy()
         cache_localization = list(self.localization).copy()
 
         if screen.__Window_Type__ == "Internal":
             cache_screen_localization = screen.get_localization()
-        else:
-            cache_screen_localization = [0, 0]
 
         for number in range(2):
             if "%" in str(cache_size[number]):
@@ -144,8 +146,8 @@ class Object2D:
         if cache_localization[0] < mouse_lok[0] < cache_localization[0] + cache_size[0] and cache_localization[1] < mouse_lok[1] < cache_localization[1] + cache_size[1]:
             return True
 
-    def button(self, button, screen, multiple_click: bool = False):
-        if self.over(screen):
+    def button(self, button, screen, camera=None, multiple_click: bool = False):
+        if self.over(screen, camera):
             Program.cursor(self.cursor)
             if mouse_button(button, multiple_click):
                 return True

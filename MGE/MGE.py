@@ -16,7 +16,6 @@ class Object_Program:
     def __init__(self):
         self.screen = None
         self.event = None
-        #self.time = {"mon": 0, "day": 0, "hours": 0, "min": 0, "sec": 0}
         self.clock = 0
         self.pygame = pygame
         self.default_font = None
@@ -35,7 +34,7 @@ class Object_Program:
         self.set_icon(Image(color=(70, 70, 70)))
         version_print()
 
-    def update(self, still_frame_optimization: bool = False, save_last_rendered_frame: bool = True):
+    def update(self, still_frame_optimization: bool = False, save_last_rendered_frame: bool = False):
         if not self.clock == 0:
             self.screen.clock.tick(self.clock)
 

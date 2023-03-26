@@ -3,12 +3,9 @@ from pygame._sdl2 import Window, Renderer
 from PIL import Image as PIL_Image
 from screeninfo import get_monitors
 
-from .Global_Cache import Cache
+#from .Global_Cache import Cache
 from .Camera import Camera
 from .Platform import Platform
-
-#if not Platform.system == "Android" and not Platform.system == "Linux":
-#    from ctypes import windll
 
 mode_flags = {"NOFRAME": 32, "RESIZABLE": 16, "FULLSCREEN": -2147483648}
 
@@ -36,9 +33,6 @@ class Screen:
         self.opengl = False
         self.clock = pygame.time.Clock()
         self.camera = Camera()
-
-    #def render(self):
-    #    pass
 
     def get_screen_img(self):
         if self.sdl2:
@@ -69,8 +63,9 @@ class Screen:
             self.window_sdl2.position = tuple(cache_localization)
         else:
             if not Platform.system == "Android" and not Platform.system == "Linux":
-                hwnd = pygame.display.get_wm_info()['window']
-                w, h = self.screen.get_size()
+                pass
+                #hwnd = pygame.display.get_wm_info()['window']
+                #w, h = self.screen.get_size()
                 #windll.user32.MoveWindow(hwnd, cache_localization[0], cache_localization[1], w, h, False)
 
     def set_size(self, x: int, y: int, mode: str = "", sdl2: bool = False):

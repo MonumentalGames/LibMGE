@@ -3,7 +3,6 @@ import sys
 import os
 
 class Audio:
-
     volume = 100
 
     class Sound:
