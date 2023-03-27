@@ -4,12 +4,12 @@ Version: 0.2.0
 [other versions](https://github.com/lucas224112/MGE_Other_Versions)
 
 ## Dependencies
-[pygame](https://pypi.org/project/pygame/) -
-[numpy](https://pypi.org/project/numpy/) -
-[pillow](https://pypi.org/project/Pillow/) -
-[opencv-python](https://pypi.org/project/opencv-python/) -
-[pyperclip](https://pypi.org/project/pyperclip/) -
-[screeninfo](https://pypi.org/project/screeninfo/)
+[`pygame`](https://pypi.org/project/pygame/) -
+[`numpy`](https://pypi.org/project/numpy/) -
+[`pillow`](https://pypi.org/project/Pillow/) -
+[`opencv-python`](https://pypi.org/project/opencv-python/) -
+[`pyperclip`](https://pypi.org/project/pyperclip/) -
+[`screeninfo`](https://pypi.org/project/screeninfo/)
 
 ## Example of use
 ```py
