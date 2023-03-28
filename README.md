@@ -3,6 +3,11 @@
 Version: 0.2.0  
 [other versions](https://github.com/lucas224112/MGE_Other_Versions)
 
+## Installing
+```
+pip install MGE
+```
+
 ## Dependencies
 [`pygame`](https://pypi.org/project/pygame/) -
 [`numpy`](https://pypi.org/project/numpy/) -
