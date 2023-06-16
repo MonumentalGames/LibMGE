@@ -1,4 +1,4 @@
-# MGE
+# MGE 
 
 Version: 0.2.0  
 [other versions](https://github.com/lucas224112/MGE_Other_Versions)
@@ -38,7 +38,3 @@ while True:
     MGE.Program.set_caption(f"Gif-MGE | FPS:{int(MGE.Program.get_fps())}")
     MGE.Program.update()
 ```
-
-- ### Another examples
-  [Open Gif](https://github.com/lucas224112/MGE_Open_Gif) - 
-  [Text Box](https://github.com/lucas224112/MGE_Text_Box)
