@@ -1,34 +1,24 @@
+from .Common import update, init, SetLogicClock, GetLogicClock, AllEvents, QuitEvent
+from .Audio import Audio
 from .Platform import Platform
-
-from .MGE import Program
-from .Global_Cache import Cache
-
+from .Constants import *
 from .Camera import Camera
-from .Window import Screen_inputs
-from .Internal_Window import Internal_Window
-#from .Outside_Window import Outside_Window
-
+from .Window import Window
+from .InternalWindow import InternalWindow
+from .Monitors import Monitors, Monitor
 from .Text import ObjectText, ObjectTextBox
-from .Object2D import Object2D, Pivot2D
-#from .Object3D import Object3D, Pivot3D
+from .Object2D import Object2D
 from .Line import Line
-
 from .Material import Material
 from .Texture import Texture
-from .Image import Image
-#from .Sprite import Sprite
-
-from .Mesh import Mesh
-
-from .Vector import Vector
-
-from .Mouse import mouse_button, mouse_position, mouse_set_position, mouse_set_visible
+from .Image import *
+from .Color import Color
+from .Mesh import Mesh2D, CreateMeshPlane
+from .Mouse import *
 from .Keyboard import keyboard
+from .GameController import *
+from .Button import *
+from .Time import *
+from .Version import __version__, __version_data__, __version_list__
 
-from .Button import Button
-
-from .Audio import Audio
-
-from .Monitors import monitor_resolution
-
-from .Version import __version__, __version_data__
+print(f"{'MGE' if __version_data__['phase'] == 'Stable' else __version_data__['phase'] + '-MGE'} {__version__} (SDL {Platform.SDL.SDL_version} | Python {Platform.python_version})")

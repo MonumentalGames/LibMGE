@@ -1,255 +1,240 @@
-import pygame
-from .MGE import Program
+from .Camera import Camera
 from .Vector import motion
-from .Mouse import mouse_button
-from .Material import Material
+from .Mouse import GetMousePosition
+from .Material import Material, DefaultMaterial
+from .Constants import Pivot2D, Meshes2D
 from .Mesh import *
+from .Common import _temp, _calculate_object2d
+from .Time import Time, fps_to_time
+from .Window import Window
+from .Color import Color
+from ._sdl import sdl2
 
-class Pivot2D:
-    CENTER = 800
-    TOP_LEFT_SIDE = 700
-    TOP_RIGHT_SIDE = 750
-    LOWER_LEFT_SIDE = 600
-    LOWER_RIGHT_SIDE = 650
+__all__ = ["Object2D"]
 
 class Object2D:
-    def __init__(self, localization=(0, 0), rotation: int = 0, size=(0, 0), scale=(1, 1), mesh=Mesh(plane)):
-        self.localization = localization
-        self.rotation = rotation
-        self.scale = scale
-        self.Mesh = mesh
-        self.size = list(size)
-        self.border_size = 0
-        self.border_color = (100, 100, 255)
-        self.border_radius = [0, 0, 0, 0]
-        self.xy = None
-        self.cursor = 11
-        self.material = Material()
+    def __init__(self, location=(0, 0), rotation: int = 0, size=(0, 0), scale=(1, 1), material: Material = DefaultMaterial, mesh: Mesh2D = Meshes2D.Plane):
+        self._size = list(size)
+        self._location = list(location)
+        self._rotation = rotation
+        self._scale = list(scale)
+        self._Mesh = mesh
+        self._pivot = Pivot2D.TopLeftSide
+        self._border_size = 0
+        self._border_color = Color((100, 100, 255))
+        self._border_radius = [0, 0, 0, 0]
+        self._cursor = 11
+        self._material = material
+
+        self._motion_tick_time = {"x": Time(fps_to_time(60)), "y": Time(fps_to_time(60))}
+
         self.variables = {}
 
-        self.object_render = False
-        self.always_render = False
+        self._showMoreDetailsOfCollisions = False
 
-        self.cache_object = pygame.Surface((0, 0))
+        self.object_render = self.thed_render = self.always_render = False
 
-    def draw_object(self, screen, camera=None, pivot=Pivot2D.TOP_LEFT_SIDE):
-        if camera is not None:
-            loc_camera = camera.get_location()
-        else:
-            loc_camera = screen.camera.get_location()
-        size_screen = screen.get_size()
-        cache_screen_localization = [0, 0]
-        cache_size = list(self.size).copy()
-        cache_localization = list(self.localization).copy()
+        self.cache_object = None
+        self.cache_object_tx = None
 
-        if screen.__Window_Type__ == "Internal":
-            cache_screen_localization = screen.get_localization()
-
-        for number in range(2):
-            if "%" in str(cache_size[number]):
-                cache_size[number] = size_screen[number] / 100 * int(str(cache_size[number]).replace("%", ""))
-
-        for number in range(2):
-            if "%" in str(cache_localization[number]):
-                cache_localization[number] = size_screen[number] / 100 * int(str(cache_localization[number]).replace("%", ""))
-            elif cache_localization[number] == "center_obj":
-                cache_localization[number] = (size_screen[number] - cache_size[number]) / 2
-
-        cache_localization = [cache_localization[0] + loc_camera[0] + cache_screen_localization[0], cache_localization[1] + loc_camera[1] + cache_screen_localization[1]]
-
-        if screen.sdl2:
-            pass
-        else:
-            if self.material.texture or 254 >= self.material.alpha >= 0 or self.rotation > 0 or not self.Mesh.Mesh == plane:
-                if not self.material.object_render or self.material.always_render or not self.object_render or self.always_render:
-                    if self.material.texture:
-                        self.material.render()
-                        img_cache = self.material.Surface
-                        cache_object = pygame.transform.scale(img_cache, [cache_size[0], cache_size[1]])
-                    else:
-                        cache_object = pygame.Surface((cache_size[0], cache_size[1]))
-                        cache_object.fill(self.material.color)
-
-                    self.cache_object = pygame.Surface(cache_size, pygame.SRCALPHA)
-                    if self.Mesh.Mesh == plane:
-                        pygame.draw.rect(self.cache_object, (255, 255, 255, 255), (0, 0, *cache_size), border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
-                    else:
-                        pygame.draw.polygon(self.cache_object, (255, 255, 255, 255), self.Mesh.get_mesh(cache_localization, self.scale))
-                    self.cache_object.blit(cache_object, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
-
-                    if 254 >= self.material.alpha >= 0:
-                        self.cache_object.set_alpha(self.material.alpha)
-                    if not self.rotation == 0:
-                        self.cache_object = pygame.transform.rotate(self.cache_object, self.rotation)
-
-                    self.material.object_render = True
-                    self.object_render = True
-
-                if pivot == 800:
-                    cache_localization = [cache_localization[0] - int(self.cache_object.get_width() / 2), cache_localization[1] - int(self.cache_object.get_height() / 2)]
-                elif pivot == 750:
-                    cache_localization[1] -= self.cache_object.get_height()
-                elif pivot == 600:
-                    cache_localization[0] -= self.cache_object.get_width()
-                elif pivot == 650:
-                    cache_localization = [cache_localization[0] - self.cache_object.get_width(), cache_localization[1] - self.cache_object.get_height()]
-
-                if not self.border_size == 0:
-                    screen.screen.blit(self.cache_object, (cache_localization[0], cache_localization[1]))
-                    pygame.draw.rect(screen.screen, self.border_color, (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), self.border_size, border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
-                else:
-                    # pygame.draw.rect(cache_object, self.material.get_color(), (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), border_radius=self.border_radius)
-                    screen.screen.blit(self.cache_object, (cache_localization[0], cache_localization[1]))
+    def render(self, window):
+        if not self.object_render:
+            if len(self._material.textures) > 0:
+                if self.cache_object is None:
+                    self._material.render()
+                    self.cache_object = self._material.surface
+                    if self.cache_object_tx is not None:
+                        sdl2.SDL_DestroyTexture(self.cache_object_tx)
+                        self.cache_object_tx = None
+                    self.cache_object_tx = sdl2.SDL_CreateTextureFromSurface(window.renderer, self.cache_object).contents
             else:
+                if self.cache_object is not None:
+                    self.cleanCache()
+                self._material.render()
+            self.object_render = True
 
-                if pivot == 800:
-                    cache_localization = [cache_localization[0] - int(cache_size[0] / 2), cache_localization[1] - int(cache_size[1] / 2)]
-                elif pivot == 750:
-                    cache_localization[1] -= cache_size[1]
-                elif pivot == 600:
-                    cache_localization[0] -= cache_size[0]
-                elif pivot == 650:
-                    cache_localization = [cache_localization[0] - cache_size[0], cache_localization[1] - cache_size[1]]
+    def draw_object(self, window: Window, camera: Camera = None):
+        if window.__Window_Active__:
+            if self not in window.draw_objects:
+                render, cache_location, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
+                if render:
+                    window.draw_objects.append(self)
+                    if not self.object_render or self.always_render or window.render_all_objects:
+                        self.object_render = False
+                        self.render(window)
+                    if not self._Mesh.vertices:
+                        if self.cache_object is None:
+                            window.drawSquare(cache_location, cache_size, self._rotation, self._border_radius[0], self._material.color)
+                        else:
+                            ret = self._material.updade()
+                            if ret:
+                                self.cache_object = self._material.surface
+                                sdl2.SDL_UpdateTexture(self.cache_object_tx, None, self.cache_object.pixels, self.cache_object.pitch)
+                            window.blit(self.cache_object_tx, cache_location, cache_size, self._rotation)
+                        if self._border_size != 0:
+                            window.drawEdgesSquare(cache_location, cache_size, self._rotation, self._border_size, self._border_radius[0], self._border_color)
+                    else:
+                        if len(self._material.textures) > 0:
+                            _color = self._material.surfaceColor
+                        else:
+                            _color = self._material.color
+                        window.drawPolygon(cache_location, self._scale, self._rotation, self._Mesh.vertices, _color)
 
-                if not self.border_size == 0:
-                    pygame.draw.rect(screen.screen, self.material.get_color(), (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
-                    pygame.draw.rect(screen.screen, self.border_color, (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), self.border_size, border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
-                else:
-                    pygame.draw.rect(screen.screen, self.material.get_color(), (cache_localization[0], cache_localization[1], cache_size[0], cache_size[1]), border_top_right_radius=self.border_radius[0], border_top_left_radius=self.border_radius[1], border_bottom_right_radius=self.border_radius[2], border_bottom_left_radius=self.border_radius[3])
-
-    def over(self, screen, camera=None):
-        if camera is not None:
-            loc_camera = camera.get_location()
-        else:
-            loc_camera = screen.camera.get_location()
-        size_screen = screen.screen.get_size()
-        cache_screen_localization = [0, 0]
-        cache_size = list(self.size).copy()
-        cache_localization = list(self.localization).copy()
-
-        if screen.__Window_Type__ == "Internal":
-            cache_screen_localization = screen.get_localization()
-
-        for number in range(2):
-            if "%" in str(cache_size[number]):
-                cache_size[number] = size_screen[number] / 100 * int(str(cache_size[number]).replace("%", ""))
-
-        for number in range(2):
-            if "%" in str(cache_localization[number]):
-                cache_localization[number] = size_screen[number] / 100 * int(str(cache_localization[number]).replace("%", ""))
-            elif cache_localization[number] == "center_obj":
-                cache_localization[number] = (size_screen[number] - cache_size[number]) / 2
-
-        cache_localization = [cache_localization[0] + loc_camera[0] + cache_screen_localization[0], cache_localization[1] + loc_camera[1] + cache_screen_localization[1]]
-
-        mouse_lok = pygame.mouse.get_pos()
-        if cache_localization[0] < mouse_lok[0] < cache_localization[0] + cache_size[0] and cache_localization[1] < mouse_lok[1] < cache_localization[1] + cache_size[1]:
+    def hover(self, window, camera: Camera = None) -> bool:
+        render, cache_localization, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
+        mouse_lok = GetMousePosition()
+        if render and (cache_localization[0] < mouse_lok[0] < cache_localization[0] + cache_size[0] and cache_localization[1] < mouse_lok[1] < cache_localization[1] + cache_size[1]):
+            _temp.MouseCursor = self._cursor
             return True
 
-    def button(self, button, screen, camera=None, multiple_click: bool = False):
-        if self.over(screen, camera):
-            Program.cursor(self.cursor)
-            if mouse_button(button, multiple_click):
-                return True
+    def cleanCache(self):
+        self.cache_object = None
+        if self.cache_object_tx is not None:
+            sdl2.SDL_DestroyTexture(self.cache_object_tx)
+            self.cache_object_tx = None
+        #if self.cache_object is not None:
+        #    self.cache_object.close()
+        #    del self.cache_object
+        #    self.cache_object = None
 
-    def set_localization(self, localization):
-        self.localization = localization
+    def close(self):
+        self.cleanCache()
+        del self
 
-    def set_rotation(self, rotation):
-        self.rotation = rotation
-        self.object_render = False
-        if self.material is not None:
-            self.material.object_render = False
+    @property
+    def location(self) -> list[int, int]:
+        #return calculate_location(self.localization, Program.screen.get_size())
+        return self._location
 
-    def set_size(self, size):
-        self.size = size
-        self.object_render = False
-        if self.material is not None:
-            self.material.object_render = False
+    @location.setter
+    def location(self, location):
+        self._location = location
 
-    def set_loc_siz(self, localization, size):
-        self.size = size
-        self.localization = localization
-        self.object_render = False
-        if self.material is not None:
-            self.material.object_render = False
+    @property
+    def size(self) -> list[int, int]:
+        #return calculate_size(self.size, Program.screen.get_size())
+        return self._size
 
-    def set_border(self, border_size: int = None, border_color=None, border_radius: int = None):
-        cache = [border_size, border_color, border_radius]
-        n = 0
-        for t in cache:
-            if t is not None:
-                if n == 0:
-                    self.border_size = border_size
-                if n == 1:
-                    self.border_color = border_color
-                if n == 2:
-                    self.border_radius = [border_radius, border_radius, border_radius, border_radius]
-            n += 1
+    @size.setter
+    def size(self, size):
+        #if self._size != size:
+        self._size = size
+        #    self.object_render = False
 
-    def set_border_size(self, border_size):
-        self.border_size = border_size
+    @property
+    def rotation(self):
+        return self._rotation
 
-    def set_border_color(self, border_color=(100, 100, 255)):
-        self.border_color = border_color
+    @rotation.setter
+    def rotation(self, rotation: int | float):
+        if self._rotation != rotation:
+            self._rotation = round(rotation, 4)
+            self._rotation %= 360
 
-    def set_border_radius(self, radius: int = 0, higher_right: int = 0, higher_left: int = 0, bottom_right: int = 0, bottom_left: int = 0):
-        if radius:
-            self.border_radius = [radius, radius, radius, radius]
-        else:
-            self.border_radius = [higher_right, higher_left, bottom_right, bottom_left]
+    @property
+    def scale(self):
+        return self._scale
 
-    def set_scale(self, scale, xy):
-        self.scale = scale
-        self.xy = xy
-        self.object_render = False
-        if self.material is not None:
-            self.material.object_render = False
+    @scale.setter
+    def scale(self, scale):
+        if self._scale != scale:
+            self._scale = scale
+            self.object_render = self._material.object_render = False
 
-    def set_material(self, material: Material):
-        self.material = material
-        self.object_render = False
-        self.material.object_render = False
+    @property
+    def pivot(self):
+        return self._pivot
 
-    def set_background(self, p):
-        pass
+    @pivot.setter
+    def pivot(self, pivot):
+        self._pivot = pivot
 
-    def set_cursor(self, cursor):
-        self.cursor = cursor
+    @property
+    def borderSize(self):
+        return self._border_size
 
-    def get_localization(self):
-        size_screen = Program.screen.screen.get_size()
-        cache_size = list(self.size).copy()
-        cache_localization = list(self.localization).copy()
+    @borderSize.setter
+    def borderSize(self, border_size: int):
+        self._border_size = border_size
 
-        for number in range(2):
-            if "%" in str(cache_size[number]):
-                cache_size[number] = size_screen[number] / 100 * int(str(cache_size[number]).replace("%", ""))
+    @property
+    def borderColor(self):
+        return self._border_color
 
-        for number in range(2):
-            if "%" in str(cache_localization[number]):
-                cache_localization[number] = size_screen[number] / 100 * int(str(cache_localization[number]).replace("%", ""))
-            elif cache_localization[number] == "center_obj":
-                cache_localization[number] = (size_screen[number] - cache_size[number]) / 2
+    @borderColor.setter
+    def borderColor(self, border_color: Color):
+        self._border_color = border_color
 
-        return cache_localization.copy()
+    @property
+    def borderRadius(self):
+        return
 
-    def get_size(self):
-        size_screen = Program.screen.screen.get_size()
-        cache_size = list(self.size).copy()
+    @borderRadius.setter
+    def borderRadius(self, radius: int | tuple[int, int, int, int]):
+        if type(radius) == int:
+            self._border_radius = [radius, radius, radius, radius]
+        elif type(radius) == tuple:
+            self._border_radius = [radius[0], radius[1], radius[2], radius[3]]
+        #self.border_radius = [higher_right, higher_left, bottom_right, bottom_left]
 
-        for number in range(2):
-            if "%" in str(cache_size[number]):
-                cache_size[number] = size_screen[number] / 100 * int(str(cache_size[number]).replace("%", ""))
+    @property
+    def material(self):
+        return self._material
 
-        return cache_size.copy()
+    @material.setter
+    def material(self, material: Material):
+        if self._material != material:
+            self._material = material
+            self.object_render = self._material.object_render = False
 
-    def motion(self, axis, axis_type, speed):
-        Program.Temp.ForceRender = True
+    def cursor(self, cursor: int):
+        self._cursor = cursor
+
+    def motion(self, axis, axis_type, speed: int | float | tuple):
+        #Program.Temp.ForceRender = True
         if axis_type == 10:  # global
-            if axis == 1:  # x
-                self.localization[0] += speed
-            if axis == 2:  # y
-                self.localization[1] += speed
+            if axis == 1 or axis == -1:  # x
+                self._location[0] += (speed if type(speed) == int or type(speed) == float else speed[0]) * self._motion_tick_time["x"].tickMotion()
+            if axis == 2 or axis == -1:  # y
+                self._location[1] += (speed if type(speed) == int or type(speed) == float else speed[1]) * self._motion_tick_time["y"].tickMotion()
         if axis_type == 30:  # local
-            self.localization = motion(self, axis, speed)
+            if self._motion_tick_time["y"].tick():
+                self.location = motion(self, axis, speed)
+
+    def collision(self, objects: object | list, variables: str | list = "") -> bool | list:
+        if not isinstance(objects, list):
+            objects = [objects]
+
+        def coll(s_objects, s_variables):
+            _variables = {}
+            if s_variables:
+                if isinstance(s_variables, str):
+                    if s_variables in s_objects.variables.keys():
+                        if s_objects.variables[s_variables]:
+                            _variables[s_variables] = s_objects.variables[s_variables]
+                        else:
+                            return False
+                    else:
+                        return False
+                elif isinstance(s_variables, list):
+                    for var in s_variables:
+                        if var in s_objects.variables.keys():
+                            if s_objects.variables[var]:
+                                _variables[var] = s_objects.variables[var]
+                    if not _variables:
+                        return False
+            if self._location[0] < s_objects._location[0] + s_objects._size[0] + 1 and self._location[0] + self._size[0] + 1 > s_objects._location[0] \
+                    and self._location[1] < s_objects._location[1] + s_objects._size[1] + 1 and self._location[1] + self._size[1] + 1 > s_objects._location[1]:
+                return [self, s_objects, _variables] if self._showMoreDetailsOfCollisions else True
+            return False
+
+        rets = []
+
+        for ob in objects:
+            if isinstance(ob, Object2D) and not ob == self:
+                ret = coll(ob, variables)
+                if ret:
+                    rets.append(ret)
+        if rets:
+            return rets if self._showMoreDetailsOfCollisions else True
+        return False

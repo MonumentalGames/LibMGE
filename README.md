@@ -1,6 +1,6 @@
 # MGE 
 
-Version: 0.2.0  
+Version: 0.9.4  
 [other versions](https://github.com/lucas224112/MGE_Other_Versions)
 
 ## Installing
@@ -9,32 +9,29 @@ pip install MGE
 ```
 
 ## Dependencies
-[`pygame`](https://pypi.org/project/pygame/) -
-[`numpy`](https://pypi.org/project/numpy/) -
-[`pillow`](https://pypi.org/project/Pillow/) -
-[`opencv-python`](https://pypi.org/project/opencv-python/) -
-[`pyperclip`](https://pypi.org/project/pyperclip/) -
-[`screeninfo`](https://pypi.org/project/screeninfo/)
+[`numpy`](https://pypi.org/project/numpy/)
 
 ## Example of use
 ```py
 import sys
 import MGE
 
-MGE.Program.init()
+MGE.init()
+
+window = MGE.Window(resolution=(500, 500), flags=MGE.WindowFlag.Shown)
+window.limit_time = 120
 
 gif = MGE.Object2D([0, 0], 0, [500, 500])
-gif.set_material(MGE.Material(MGE.Texture(MGE.Image("./image.gif"))))
-
-MGE.Program.screen.set_size(500, 500)
-MGE.Program.set_clock(120)
+gif.material = MGE.Material(MGE.Texture(MGE.LoadGif("./image.gif")))
 
 while True:
-    if MGE.Program.event.type == MGE.Screen_inputs.quit or MGE.keyboard("f1"):
+    MGE.update()
+    window.update()
+
+    window.title = f"Gif-MGE | FPS:{window.fps}"
+
+    if MGE.QuitEvent() or MGE.keyboard(MGE.KeyboardButton.F1):
         sys.exit()
 
-    gif.draw_object(MGE.Program.screen)
-
-    MGE.Program.set_caption(f"Gif-MGE | FPS:{int(MGE.Program.get_fps())}")
-    MGE.Program.update()
+    gif.draw_object(window)
 ```

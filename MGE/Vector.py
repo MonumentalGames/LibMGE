@@ -1,27 +1,20 @@
-import numpy as np
+import numpy
 
-class Vector:
-    X = 1
-    Y = 2
+__all__ = ["motion"]
 
-    GLOBAL = 10
-    LOCAL = 30
-
-def motion(object2d, axis, speed=0):
-    x, y = object2d.localization
-    theta = object2d.rotation
+def motion(object, axis, speed=0):
+    x, y = object.location
+    theta = object.rotation
 
     # Conversão do ângulo de graus para radianos
-    theta_rad = np.deg2rad((theta + 90 * axis) * -1)
+    theta_rad = numpy.deg2rad((theta + 90 * axis) * -1)
 
-    try:
-        if object2d.variables["speed"] != 0:
-            speed = object2d.variables["speed"]
-    except:
-        pass
+    if "speed" in object.variables:
+        if object.variables["speed"] != 0:
+            speed = object.variables["speed"]
 
     # Cálculo das componentes horizontal e vertical do vetor de movimento
-    dx = speed * np.cos(theta_rad)
-    dy = speed * np.sin(theta_rad)
+    dx = speed * numpy.cos(theta_rad)
+    dy = speed * numpy.sin(theta_rad)
 
-    return [(x + dx), (y + dy)]
+    return [(x + -dx), (y + dy)]
