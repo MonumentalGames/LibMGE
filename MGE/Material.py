@@ -1,5 +1,5 @@
-import numpy
-import ctypes
+from numpy import frombuffer, uint8, mean
+from ctypes import c_uint8
 from .Texture import Texture
 from .Color import Color, Colors
 from ._sdl import sdl2
@@ -18,7 +18,7 @@ class Material:
         self.addTexture(texture)
 
         self._surface = sdl2.SDL_CreateRGBSurface(0, 16, 16, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000).contents
-        sdl2.SDL_FillRect(self._surface, None, (self._color.r << 0) | (self._color.g << 8) | (self._color.b << 16) | (self.alpha << 24))
+        sdl2.SDL_FillRect(self._surface, None, (self._color.b << 0) | (self._color.g << 8) | (self._color.r << 16) | (self.alpha << 24))
         self._surface_color = Color(self._color.RGBA)
         self._renderer = None
 
@@ -39,7 +39,7 @@ class Material:
         sdl2.SDL_FreeSurface(self._surface)
         if len(self._textures) == 0 or False:
             self._surface = sdl2.SDL_CreateRGBSurface(0, 16, 16, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000).contents
-            sdl2.SDL_FillRect(self._surface, None, (self._color.r << 0) | (self._color.g << 8) | (self._color.b << 16) | (self.alpha << 24))
+            sdl2.SDL_FillRect(self._surface, None, (self._color.b << 0) | (self._color.g << 8) | (self._color.r << 16) | (self.alpha << 24))
             self._render = False
         else:
             self._surface = sdl2.SDL_CreateRGBSurface(0, *self._textures[0].image.size, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000).contents
@@ -47,7 +47,7 @@ class Material:
             for tx in self._textures:
                 tx.render(self._renderer)
             self._render = False
-            self.updade()
+            self.update()
 
         ## ----------------------------------------------- ##
         # tenque otimizar
@@ -55,22 +55,24 @@ class Material:
         width, height = self._surface.w, self._surface.h
         depth = self._surface.format.contents.BytesPerPixel * 8
 
-        pixel_buffer = (ctypes.c_uint8 * (width * height * depth // 8)).from_address(self._surface.pixels)
-        surface_array = numpy.frombuffer(pixel_buffer, dtype=numpy.uint8)
+        pixel_buffer = (c_uint8 * (width * height * depth // 8)).from_address(self._surface.pixels)
+        surface_array = frombuffer(pixel_buffer, dtype=uint8)
 
         pixels = surface_array.reshape((height, width, depth // 8))
 
         # Calculando a média de cada canal de cor (R, G, B, A)
-        media_cor = numpy.mean(pixels, axis=(0, 1))
+        media_cor = mean(pixels, axis=(0, 1))
 
-        self._surface_color.RGBA = list(media_cor.astype(int))
+        self._surface_color.RGBA = [int(i) for i in list(media_cor.astype(int))]
         self._surface_color.a = 255
+
+        del media_cor, pixels, surface_array, pixel_buffer, height, width, depth
 
         ## ----------------------------------------------- ##
 
         return self.surface
 
-    def updade(self):
+    def update(self):
         if self._render:
             self.render()
         _textures = []

@@ -47,6 +47,7 @@ class Object2D:
                         sdl2.SDL_DestroyTexture(self.cache_object_tx)
                         self.cache_object_tx = None
                     self.cache_object_tx = sdl2.SDL_CreateTextureFromSurface(window.renderer, self.cache_object).contents
+                    sdl2.SDL_SetTextureScaleMode(self.cache_object_tx, 1)
             else:
                 if self.cache_object is not None:
                     self.cleanCache()
@@ -66,10 +67,11 @@ class Object2D:
                         if self.cache_object is None:
                             window.drawSquare(cache_location, cache_size, self._rotation, self._border_radius[0], self._material.color)
                         else:
-                            ret = self._material.updade()
-                            if ret:
-                                self.cache_object = self._material.surface
-                                sdl2.SDL_UpdateTexture(self.cache_object_tx, None, self.cache_object.pixels, self.cache_object.pitch)
+                            self._material.update()
+                            #ret = self._material.update()
+                            #if ret:
+                            self.cache_object = self._material.surface
+                            sdl2.SDL_UpdateTexture(self.cache_object_tx, None, self.cache_object.pixels, self.cache_object.pitch)
                             window.blit(self.cache_object_tx, cache_location, cache_size, self._rotation)
                         if self._border_size != 0:
                             window.drawEdgesSquare(cache_location, cache_size, self._rotation, self._border_size, self._border_radius[0], self._border_color)
@@ -223,8 +225,8 @@ class Object2D:
                                 _variables[var] = s_objects.variables[var]
                     if not _variables:
                         return False
-            if self._location[0] < s_objects._location[0] + s_objects._size[0] + 1 and self._location[0] + self._size[0] + 1 > s_objects._location[0] \
-                    and self._location[1] < s_objects._location[1] + s_objects._size[1] + 1 and self._location[1] + self._size[1] + 1 > s_objects._location[1]:
+            if self._location[0] < s_objects._location[0] + s_objects._font_size[0] + 1 and self._location[0] + self._size[0] + 1 > s_objects._location[0] \
+                    and self._location[1] < s_objects._location[1] + s_objects._font_size[1] + 1 and self._location[1] + self._size[1] + 1 > s_objects._location[1]:
                 return [self, s_objects, _variables] if self._showMoreDetailsOfCollisions else True
             return False
 

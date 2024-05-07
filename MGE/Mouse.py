@@ -2,11 +2,11 @@ import ctypes
 
 from ._sdl import sdl2
 from .Monitors import Monitors
-from .Common import _temp
+from .Common import _temp, AllEvents
 
 __all__ = ["GetMousePosition", "GetMouseGlobalPosition", "SetMousePosition", "SetMouseGlobalPosition",
            "SetMouseVisibility", "SetMouseCursor",
-           "MouseMotion", "MouseGlobalMotion", "MouseButton", "MouseState"]
+           "MouseMotion", "MouseGlobalMotion", "MouseButton", "MouseScroll", "MouseState"]
 
 def MouseState(button):
     if button == -1:
@@ -81,3 +81,9 @@ def MouseButton(button=1, multiple_click=False):
         if not MouseState(-1)[num]:
             _temp.Mouse["button_cache"][num] = False
     return False
+
+def MouseScroll():
+    for event in AllEvents():
+        if event.type == sdl2.SDL_MOUSEWHEEL:
+            return round(event.wheel.preciseY)
+    return 0

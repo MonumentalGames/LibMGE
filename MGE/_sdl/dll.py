@@ -2,6 +2,8 @@ import sys
 import os
 from ctypes import CDLL
 
+from ..Log import LogError, LogCritical
+
 def NullFunction(*args):
     return
 
@@ -12,12 +14,12 @@ def find_path(file_name: str | list):
     elif os.path.exists(f"{os.path.abspath(os.path.dirname(__file__))}/../{file_name}"):
         dll_path = f"{os.path.abspath(os.path.dirname(__file__))}/../{file_name}"
     else:
-        sys.exit(f"{file_name} not found")
+        LogCritical(f"{file_name} not found", "", 1)
     return dll_path
 
 class DLL(object):
     def __init__(self, path=None):
-        self._dll = CDLL(path)
+        self._dll = None if path is None else CDLL(path)
 
     def bind_function(self, func_name, args=None, returns=None):
         if self._dll is None:
@@ -26,6 +28,7 @@ class DLL(object):
             func = getattr(self._dll, func_name, None)
             if not func:
                 print(f"error -> {func_name}")
+                LogError(f"{func_name}")
                 return NullFunction
             func.argtypes, func.restype = args, returns
             return func

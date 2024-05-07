@@ -7,6 +7,8 @@ from ._sdl import sdl2, sdlgfx
 from .Color import Color
 from .Texture import _get_sdl2_texture_size
 from .Camera import Camera
+from .Mesh import rotate_point
+from .Mouse import GetMousePosition
 
 __all__ = ["InternalWindow"]
 
@@ -64,20 +66,27 @@ class InternalWindow:
     def variables(self, variables):
         self._variables = variables
 
+    def hover(self) -> bool:
+        cache_location, cache_size = self._location, self._resolution
+        mouse_lok = GetMousePosition()
+        if cache_location[0] < mouse_lok[0] < cache_location[0] + cache_size[0] and cache_location[1] < mouse_lok[1] < cache_location[1] + cache_size[1]:
+            #_temp.MouseCursor = self._cursor
+            return True
+
     def render(self, window=None):
         if self.cache_object is not None:
             sdl2.SDL_DestroyTexture(self.cache_object)
             self.cache_object = None
         self.cache_object = sdl2.SDL_CreateTextureFromSurface(window.renderer if window is not None else sdl2.SDL_GetRenderer(sdl2.SDL_GetWindowFromID(1)), self.window.contents).contents
 
-    def draw_window(self, window, camera: Camera, still_frame_optimization: bool = False):
+    def draw_window(self, window, still_frame_optimization: bool = False):
         if window.__Window_Active__ and self.__Window_Active__:
             if self not in window.draw_objects:
                 window.draw_objects.append(self)
-                render, cache_location, cache_size = _calculate_object2d(self._location, self._resolution, [1, 1], window, camera, 700)
+                render, cache_location, cache_size = _calculate_object2d(self._location, self._resolution, 0, [1, 1], window, None, 700)
                 if render:
                     if len(self.draw_objects) == 0:
-                        window.draw_square(cache_location, cache_size, 0, 0, Color(self._clear_color))
+                        window.drawSquare(cache_location, cache_size, 0, 0, Color(self._clear_color))
                         self.fps = self._limit_time
                         return
 
@@ -139,30 +148,90 @@ class InternalWindow:
         if create_texture:
             sdl2.SDL_DestroyTexture(texture)
 
-    def draw_square(self, location, size, rotation, radius, color: Color):
-        if radius > 0:
-            sdlgfx.roundedBoxRGBA(self.renderer, location[0], location[1], location[0] + size[0] - 1, location[1] + size[1] - 1, radius, *color.RGBA)
-        else:
-            sdlgfx.boxRGBA(self.renderer, location[0], location[1], location[0] + size[0] - 1, location[1] + size[1] - 1, *color.RGBA)
+    def drawPixel(self, location, color: Color):
+        sdlgfx.pixelRGBA(self.renderer, *location, *color.RGBA)
 
-    def draw_hollow_square(self, location, size, rotation, line_size, radius, color: Color):
-        if line_size != 0:
-            for num in range(line_size if line_size > 0 else -line_size):
-                num = num if line_size > 0 else -num
-                if radius > 0:
-                    sdlgfx.roundedRectangleRGBA(self.renderer, location[0] - num, location[1] - num, location[0] + size[0] + num, location[1] + size[1] + num, radius, *color.RGBA)
+    def drawSquare(self, location, size, rotation, radius, color: Color):
+        if self.__Window_Active__:
+            def _square(renderer_, location_, size_, radius_, color_):
+                if radius_ > 0:
+                    sdlgfx.roundedBoxRGBA(renderer_, location_[0], location_[1], location_[0] + size_[0] - 1, location_[1] + size_[1] - 1, radius_, *color_.RGBA)
                 else:
-                    sdlgfx.rectangleRGBA(self.renderer, location[0] - num, location[1] - num, location[0] + size[0] + num, location[1] + size[1] + num, *color.RGBA)
+                    sdlgfx.boxRGBA(renderer_, location_[0], location_[1], location_[0] + size_[0] - 1, location_[1] + size_[1] - 1, *color_.RGBA)
 
-    def draw_line(self, start, end, size, color: Color):
-        if size != 0:
-            if size == 1:
-                sdlgfx.aalineRGBA(self.renderer, *start, *end, *color.RGBA)
+            if rotation != 0:
+                mask = sdl2.SDL_CreateRGBSurface(0, size[0], size[1], 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000).contents
+                _renderer = sdl2.SDL_CreateSoftwareRenderer(mask)
+                _square(_renderer, [0, 0], size, radius, color)
+                _texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, mask).contents
+                sdl2.SDL_SetTextureScaleMode(_texture, 1)
+                self.blit(_texture, [location[0], location[1]], size, rotation)
+                sdl2.SDL_DestroyTexture(_texture)
+                sdl2.SDL_DestroyRenderer(_renderer)
+                sdl2.SDL_FreeSurface(mask)
             else:
-                sdlgfx.thickLineRGBA(self.renderer, *start, *end, size if size > 0 else -size, *color.RGBA)
+                _square(self.renderer, location, size, radius, color)
 
-    def Polygon(self, vx, vy, n, texture, texture_dx, texture_dy):
-        sdlgfx.texturedPolygon(self.renderer, vx, vy, n, texture, texture_dx, texture_dy)
+    def drawEdgesSquare(self, location, size, rotation, line_size, radius, color: Color):
+        if self.__Window_Active__:
+            if line_size != 0:
+                def _hollow_square(renderer_, location_, size_, line_size_, radius_, color_):
+                    for num in range(line_size_ if line_size_ > 0 else -line_size_):
+                        num = num if line_size_ > 0 else -num
+                        if radius_ > 0:
+                            sdlgfx.roundedRectangleRGBA(renderer_, location_[0] - num, location_[1] - num, location_[0] + size_[0] + num, location_[1] + size_[1] + num, radius_, *color_.RGBA)
+                        else:
+                            sdlgfx.rectangleRGBA(renderer_, location_[0] - num, location_[1] - num, location_[0] + size_[0] + num, location_[1] + size_[1] + num, *color_.RGBA)
+
+                if rotation not in [0, 90, 180, 240, 360]:
+                    _size = [size[0] + (line_size * 2 if line_size > 1 else 0), size[1] + (line_size * 2 if line_size > 1 else 0)]
+                    _location = [line_size if line_size > 1 else 0, line_size if line_size > 1 else 0]
+                    mask = sdl2.SDL_CreateRGBSurface(0, _size[0], _size[1], 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000).contents
+                    _renderer = sdl2.SDL_CreateSoftwareRenderer(mask)
+                    _hollow_square(_renderer, _location, size, line_size, radius, color)
+                    self.blit(mask, [location[0] - _location[0], location[1] - _location[1]], None, rotation)
+                    sdl2.SDL_DestroyRenderer(_renderer)
+                    sdl2.SDL_FreeSurface(mask)
+                else:
+                    _hollow_square(self.renderer, location, size, line_size, radius, color)
+
+    def drawLine(self, start, end, size, color: Color):
+        if self.__Window_Active__:
+            if size != 0:
+                if size == 1:
+                    sdlgfx.aalineRGBA(self.renderer, *start, *end, *color.RGBA)
+                else:
+                    sdlgfx.thickLineRGBA(self.renderer, *start, *end, size if size > 0 else -size, *color.RGBA)
+
+    def drawPolygon(self, location, scale, rotation: int, mesh: list[list[int, int]], color: Color):
+        if self.__Window_Active__:
+            _mesh = [(round(point[0] * scale[0]), round(point[1] * scale[1])) for point in mesh]
+
+            if rotation != 0:
+                _max_vx = max(round(point[0] * scale[0]) for point in mesh)
+                _max_vy = max(round(point[1] * scale[1]) for point in mesh)
+                _mesh = [rotate_point(v[0], v[1], _max_vx / 2, _max_vy / 2, rotation) for v in _mesh]
+
+            _vx = [point[0] + location[0] for point in _mesh]
+            _vy = [point[1] + location[1] for point in _mesh]
+            _n = len(_vx)
+
+            sdlgfx.filledPolygonRGBA(self.renderer, (sdl2.Sint16 * _n)(*map(int, _vx)), (sdl2.Sint16 * _n)(*map(int, _vy)), _n, *color.RGBA)
+
+    def drawEdgesPolygon(self, location, scale, rotation, mesh, color: Color):
+        if self.__Window_Active__:
+            _mesh = [(round(point[0] * scale[0]), round(point[1] * scale[1])) for point in mesh]
+
+            if rotation != 0:
+                _max_vx = max(round(point[0] * scale[0]) for point in mesh)
+                _max_vy = max(round(point[1] * scale[1]) for point in mesh)
+                _mesh = [rotate_point(v[0], v[1], _max_vx / 2, _max_vy / 2, rotation) for v in _mesh]
+
+            _vx = [point[0] + location[0] for point in _mesh]
+            _vy = [point[1] + location[1] for point in _mesh]
+            _n = len(_vx)
+
+            sdlgfx.polygonRGBA(self.renderer, (sdl2.Sint16 * _n)(*map(int, _vx)), (sdl2.Sint16 * _n)(*map(int, _vy)), _n, *color.RGBA)
 
     @property
     def color(self) -> tuple:
@@ -188,16 +257,10 @@ class InternalWindow:
 
     @property
     def location(self):
-        if self.__Window_Active__:
-            x, y = c_int(), c_int()
-            sdl2.SDL_GetWindowPosition(self.window, x, y)
-            return x.value, y.value
         return self._location
 
     @location.setter
     def location(self, location):
-        if self.__Window_Active__:
-            sdl2.SDL_SetWindowPosition(self.window, location[0], location[1])
         self._location = location[0], location[1]
 
     @property

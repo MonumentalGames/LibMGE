@@ -1,13 +1,15 @@
 import sys
+import os
+import types
 from ctypes import cast, POINTER as _P
 from ._sdl import sdl2, sdlimage, sdlttf, sdlmixer
-from .Time import Time as _Time, fps_to_time
+from .Time import Time as _Time, fps_to_time, get_fps_from_time
 from .Monitors import _update_monitors_datas
 from .Constants import All, Pivot2D
 from .Mesh import edges, calculate_square_vertices, line_intersection
 
-__all__ = ["_temp", "init", "update", "SetLogicClock", "GetLogicClock", "OpenURL",
-           "AllEvents", "QuitEvent", "WindowEvents"]
+__all__ = ["_temp", "init", "update", "SetLogicClock", "GetLogicClock", "OpenUrl",
+           "AllEvents", "QuitEvent", "WindowEvents", "AutoCalcs2D"]
 
 class _temp:
     LogicClock = 1024
@@ -50,6 +52,7 @@ def init(video=True, audio=False, events=True, controller=False, sensor=False):
         _update_monitors_datas()
         sdlttf.TTF_Init()
         sdlimage.IMG_Init()
+        os.environ["SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR"] = "0"
     if audio:
         sdlmixer.Mix_OpenAudio(360000, sdl2.AUDIO_S16SYS, 2, 1024)
         sdlmixer.Mix_Init()
@@ -86,8 +89,8 @@ def SetLogicClock(logic_clock: int):
 def GetLogicClock() -> int:
     return _temp.LogicClock
 
-def OpenURL(url: str):
-    sdl2.SDL_OpenURL(url.encode())
+def OpenUrl(url: str):
+    sdl2.SDL_OpenURL(url)
 
 def AllEvents():
     return _temp.Events
@@ -106,28 +109,27 @@ def WindowEvents(window: int = All, event: int = All):
                     return _event.window.event
     return 0
 
+class AutoCalcs2D:
+    #@staticmethod
+    #def Percent(percent: int):
+    #    def _func(window_resolution):
+    #        return window_resolution / 100 * percent
+    #    return _func
+    @staticmethod
+    def Percent(percent: int):
+        return lambda window_resolution: window_resolution / 100 * percent
+
+    @staticmethod
+    def Center():
+        def _func(window_resolution):
+            return window_resolution / 2
+        return _func
+
 def _calculate_size(size, size_window, scale) -> list:
-    cache_size = [s if isinstance(s, str) else int(s) for s in size]
-
-    for num in range(2):
-        if isinstance(size[num], str):
-            if size[num].endswith('%'):
-                cache_size[num] = int(size_window[num] * int(cache_size[num].replace('%', '')) / 100)
-        cache_size[num] = int(cache_size[num] * scale[num])
-
-    return cache_size
+    return [round(size[num](size_window[num]) * scale[num]) if callable(size[num]) else round(size[num] * scale[num]) for num in range(2)]
 
 def _calculate_location(location, size_window) -> list:
-    cache_location = [loc if isinstance(loc, str) else int(loc) for loc in location]
-
-    for num in range(2):
-        if isinstance(location[num], str):
-            if location[num].endswith('%'):
-                cache_location[num] = int(size_window[num] * int(location[num].replace('%', '')) / 100)
-            elif location[num].lower() == 'center':
-                cache_location[num] = int(size_window[num] / 2)
-
-    return cache_location
+    return [round(location[num](size_window[num])) if callable(location[num]) else round(location[num]) for num in range(2)]
 
 def _calculate_object2d(location, size, rotation, scale, window, camera, pivot) -> list[bool, list[int, int], list[int, int]]:
     cache_location_camera = camera.location if camera is not None else window.camera.location
@@ -147,13 +149,12 @@ def _calculate_object2d(location, size, rotation, scale, window, camera, pivot) 
     elif pivot == Pivot2D.LowerRightSide:
         cache_location = [cache_location[0] - cache_size[0], cache_location[1] - cache_size[1]]
 
+    render = False
     if cache_size[0] * -1 < cache_location[0] < cache_size_screen[0] and cache_size[1] * -1 < cache_location[1] < cache_size_screen[1]:
         render = True
     else:
         tt = edges(calculate_square_vertices(cache_location, cache_size, rotation))
         win_tt = edges([(0, 0), (0, window.resolution[1]), window.resolution, (window.resolution[0], 0)])
-
-        render = False
 
         for num in range(4):
             for num2 in range(4):
@@ -173,12 +174,11 @@ def _calculate_line(start, end, size, window, camera) -> list[bool, list[int, in
     cache_start = [cache_start[0] + cache_location_camera[0], cache_start[1] + cache_location_camera[1]]
     cache_end = [cache_end[0] + cache_location_camera[0], cache_end[1] + cache_location_camera[1]]
 
+    render = False
     if (cache_size[0] * -1 < cache_start[0] < cache_size_screen[0] and (cache_size[0] * -1) < cache_start[1] < cache_size_screen[1]) or ((cache_size[0] * -1) < cache_end[0] < cache_size_screen[0] and (cache_size[0] * -1) < cache_end[1] < cache_size_screen[1]):
         render = True
     else:
         win_tt = edges([(0, 0), (0, window.resolution[1]), window.resolution, (window.resolution[0], 0)])
-
-        render = False
 
         for num in range(4):
             if line_intersection(cache_start, cache_end, win_tt[num][0], win_tt[num][1]):

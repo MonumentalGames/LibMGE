@@ -30,8 +30,8 @@ class WindowFlag:
     Tooltip = 0X00040000
     PopupMenu = 0X00080000
     KeyboardGrabbed = 0X00100000
-    #WindowFlag_Vulkan = 0X10000000
-    #WindowFlag_Metal = 0X20000000
+    #Vulkan = 0X10000000
+    #Metal = 0X20000000
 
 class WindowEvent:
     NONE = 0
@@ -114,54 +114,54 @@ class MouseButton:
     X2 = 5
 
 class KeyboardButton:
-    KeyboardButton_A = 4
-    KeyboardButton_B = 5
-    KeyboardButton_C = 6
-    KeyboardButton_D = 7
-    KeyboardButton_E = 8
-    KeyboardButton_F = 9
-    KeyboardButton_G = 10
-    KeyboardButton_H = 11
-    KeyboardButton_I = 12
-    KeyboardButton_J = 13
-    KeyboardButton_K = 14
-    KeyboardButton_L = 15
-    KeyboardButton_M = 16
-    KeyboardButton_N = 17
-    KeyboardButton_O = 18
-    KeyboardButton_P = 19
-    KeyboardButton_Q = 20
-    KeyboardButton_R = 21
-    KeyboardButton_S = 22
-    KeyboardButton_T = 23
-    KeyboardButton_U = 24
-    KeyboardButton_V = 25
-    KeyboardButton_W = 26
-    KeyboardButton_X = 27
-    KeyboardButton_Y = 28
-    KeyboardButton_Z = 29
+    KeyA = 4
+    KeyB = 5
+    KeyC = 6
+    KeyD = 7
+    KeyE = 8
+    KeyF = 9
+    KeyG = 10
+    KeyH = 11
+    KeyI = 12
+    KeyJ = 13
+    KeyK = 14
+    KeyL = 15
+    KeyM = 16
+    KeyN = 17
+    KeyO = 18
+    KeyP = 19
+    KeyQ = 20
+    KeyR = 21
+    KeyS = 22
+    KeyT = 23
+    KeyU = 24
+    KeyV = 25
+    KeyW = 26
+    KeyX = 27
+    KeyY = 28
+    KeyZ = 29
 
-    #KeyboardButton_Cedilla = 51
+    #KeyCedilla = 51
 
-    KeyboardButton_1 = 30
-    KeyboardButton_2 = 31
-    KeyboardButton_3 = 32
-    KeyboardButton_4 = 33
-    KeyboardButton_5 = 34
-    KeyboardButton_6 = 35
-    KeyboardButton_7 = 36
-    KeyboardButton_8 = 37
-    KeyboardButton_9 = 38
-    KeyboardButton_0 = 39
+    Key1 = 30
+    Key2 = 31
+    Key3 = 32
+    Key4 = 33
+    Key5 = 34
+    Key6 = 35
+    Key7 = 36
+    Key8 = 37
+    Key9 = 38
+    Key0 = 39
 
-    KeyboardButton_Return = 40
-    KeyboardButton_Esc = 41
-    KeyboardButton_Back = 42
-    KeyboardButton_Tab = 43
-    KeyboardButton_Space = 44
+    Return = 40
+    Esc = 41
+    Back = 42
+    Tab = 43
+    Space = 44
 
-    KeyboardButton_Minus = 45
-    KeyboardButton_Equals = 46
+    Minus = 45
+    Equals = 46
 
     F1 = 58
     F2 = 59
@@ -176,20 +176,20 @@ class KeyboardButton:
     F11 = 68
     F12 = 69
 
-    KeyboardButton_Right = 79
-    KeyboardButton_Left = 80
-    KeyboardButton_Down = 81
-    KeyboardButton_Up = 82
+    Right = 79
+    Left = 80
+    Down = 81
+    Up = 82
 
-    KeyboardButton_LeftShift = 225
-    KeyboardButton_RightShift = 229
-    KeyboardButton_Shift = (KeyboardButton_LeftShift, KeyboardButton_RightShift)
-    KeyboardButton_LeftCtrl = 224
-    KeyboardButton_RightCtrl = 228
-    KeyboardButton_Ctrl = (KeyboardButton_LeftCtrl, KeyboardButton_RightCtrl)
-    KeyboardButton_LeftAlt = 226
-    KeyboardButton_RightAlt = 230
-    KeyboardButton_Alt = (KeyboardButton_LeftAlt, KeyboardButton_RightAlt)
+    LeftShift = 225
+    RightShift = 229
+    Shift = (LeftShift, RightShift)
+    LeftCtrl = 224
+    RightCtrl = 228
+    Ctrl = (LeftCtrl, RightCtrl)
+    LeftAlt = 226
+    RightAlt = 230
+    Alt = (LeftAlt, RightAlt)
 
 class Vector:
     X = 1

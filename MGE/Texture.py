@@ -1,6 +1,7 @@
-from .Image import Image, ImageGif
+from .Image import Image
 from ._sdl import sdl2
 from .Time import Time
+from .Log import LogError
 
 __all__ = ["Texture"]
 
@@ -8,15 +9,14 @@ def _get_sdl2_texture_size(texture):
     ret = sdl2.SDL_QueryTexture(texture)
     if ret is None:
         ret = [0, 0, 0, 0]
+        LogError("getting texture attributes")
         #sys.exit("getting texture attributes")
     return [ret[2], ret[3]]
 
 class Texture:
-    def __init__(self, image: Image | ImageGif = None):
+    def __init__(self, image: Image = None):
         self._image = None
         if isinstance(image, Image):
-            self._image = image
-        elif isinstance(image, ImageGif):
             self._image = image
             self._time = Time(self._image.delays[0] / 1000)
             self._time_frame = 0
@@ -31,11 +31,12 @@ class Texture:
         if not self._render or force:
             self._tx[id(renderer)] = []
             self._tx[id(renderer)].clear()
-            if isinstance(self._image, Image):
-                self._tx[id(renderer)] = [sdl2.SDL_CreateTextureFromSurface(renderer, self._image.image).contents]
-            elif isinstance(self._image, ImageGif):
+            if self._image.count == 1:
+                #print(self._image.images)
+                self._tx[id(renderer)] = [sdl2.SDL_CreateTextureFromSurface(renderer, self._image.images[0]).contents]
+            else:
                 for num in range(self._image.count):
-                    self._tx[id(renderer)].append(sdl2.SDL_CreateTextureFromSurface(renderer, self._image.frames[num]).contents)
+                    self._tx[id(renderer)].append(sdl2.SDL_CreateTextureFromSurface(renderer, self._image.images[num]).contents)
             self._UpdateScaleMode()
         return self.tx
 
@@ -48,7 +49,11 @@ class Texture:
         if self._time_frame > 1:
             _time_int = int(self._time_frame)
             self._time_frame -= _time_int
-            self._frame = 0 if self._frame >= self._image.count else self._frame + _time_int
+            self._frame = 0 if self._frame >= self._image.count - 1 else self._frame + _time_int
+            # erro nos tempos
+            #print(len(self._image.delays), self._frame)
+            #print(self._image.delays[self._frame] / 1000)
+            self._time.delta_time = self._image.delays[self._frame] / 1000
         return self._tx[id(renderer)][self._image.count - 1 if self._frame >= self._image.count else self._frame]
 
     def _UpdateScaleMode(self):
@@ -58,9 +63,7 @@ class Texture:
 
     @property
     def count(self):
-        if isinstance(self._image, ImageGif):
-            return self._image.count
-        return 1
+        return self._image.count
 
     @property
     def image(self):

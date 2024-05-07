@@ -17,6 +17,14 @@ class Time:
     def delta_time(self, delta_time: int | float):
         self._delta_time = delta_time
 
+    @property
+    def flipflop(self):
+        return self._flipflop_bool
+
+    @flipflop.setter
+    def flipflop(self, b):
+        self._flipflop_bool = bool(b)
+
     def restart(self):
         self._tick_time = time()
 
@@ -32,12 +40,12 @@ class Time:
         self._elapsed_time = time() - self._tick_time
         if self._elapsed_time < self._delta_time:
             sleep(self._delta_time - self._elapsed_time)
-        self._tick_time = time()
+        self.restart()
 
     def tickMotion(self) -> float:
         self._elapsed_time = time() - self._tick_time
-        self._tick_time = time()
-        return 0.01 * ((self._elapsed_time / self._delta_time) * 100)
+        self.restart()
+        return 1 if self._delta_time == 0 else 0.01 * ((self._elapsed_time / self._delta_time) * 100)
 
     def tickFlipFlop(self) -> bool:
         self._elapsed_time = time() - self._tick_time

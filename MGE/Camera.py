@@ -8,7 +8,10 @@ class Camera:
         self.motion_tick_time = {"x": Time(fps_to_time(60)), "y": Time(fps_to_time(60))}
 
     def motionTimeStart(self, axis=-1):
-        self.motion(axis, 0)
+        if axis == 1 or axis == -1:  # x
+            self.motion_tick_time["x"].restart()
+        if axis == 2 or axis == -1:  # y
+            self.motion_tick_time["y"].restart()
 
     def motion(self, axis, speed):
         if axis == 1 or axis == -1:  # x
