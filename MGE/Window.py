@@ -1,5 +1,5 @@
-import sys
 from ctypes import c_int, c_uint8, byref, sizeof, windll
+import ctypes
 
 from .Common import AllEvents, WindowEvents
 from .Keyboard import KeyboardState
@@ -19,7 +19,7 @@ __all__ = ["Window", "CreateGlWindow"]
 
 class Window:
     def __init__(self, title="MGE", icon: Icon = DefaultIcon, resolution=(1280, 720), location=(300, 300), logical_resolution=(0, 0), shape=None, camera=Camera(), render_driver=All, flags=WindowFlag.Shown | WindowFlag.Resizable):
-        self.__Window_Active__ = True
+        self.__WindowActive__ = True
 
         self._title = title
         self._location = location
@@ -40,7 +40,7 @@ class Window:
             self.context = sdl2.SDL_GL_CreateContext(self.window)
         else:
             self.renderer = sdl2.SDL_CreateRenderer(self.window, render_driver, 0x00000002 | 0x00000008 if Platform.drivers[render_driver].hardware or render_driver == -1 else 0x00000001 | 0x00000008)
-        self.__Window_Id__ = sdl2.SDL_GetWindowID(self.window)
+        self.__WindowId__ = sdl2.SDL_GetWindowID(self.window)
         _wmInfo = sdl2.SDL_SysWMinfo()
         sdl2.SDL_GetWindowWMInfo(self.window, _wmInfo)
         self._hwnd = _wmInfo.info.win.window
@@ -50,11 +50,11 @@ class Window:
 
         self._variables = {}
 
-        self._limit_time = Monitors[0].frame_rate
-        self._cache = {"clear_screen": True, "fill": True, "times": {"standard_time": Time(fps_to_time(self._limit_time)), "title_time": Time(0.5), "optimized_time": {"time_start": Time(0.5), "time_loop": Time(fps_to_time(2))}}}
-        self.fps = 0
+        self._frameRateLimit = Monitors[0].frame_rate
+        self._cache = {"clear_screen": True, "fill": True, "times": {"standard_time": Time(fps_to_time(self._frameRateLimit)), "title_time": Time(0.5), "optimized_time": {"time_start": Time(0.5), "time_loop": Time(fps_to_time(2))}}}
+        self.frameRate = 0
 
-        self.draw_objects = []
+        self.drawnObjects = []
         self.render_all_objects = True
 
     def __repr__(self):
@@ -67,17 +67,21 @@ class Window:
         )
 
     @property
+    def hwnd(self):
+        return self._hwnd
+
+    @property
     def flags(self):
         return sdl2.SDL_GetWindowFlags(self.window)
 
     @property
-    def limit_time(self):
-        return self._limit_time
+    def frameRateLimit(self):
+        return self._frameRateLimit
 
-    @limit_time.setter
-    def limit_time(self, value):
-        self._limit_time = value
-        self._cache["times"]["standard_time"].delta_time = fps_to_time(self._limit_time) if self._limit_time > 0 else 0
+    @frameRateLimit.setter
+    def frameRateLimit(self, value):
+        self._frameRateLimit = value
+        self._cache["times"]["standard_time"].delta_time = fps_to_time(self._frameRateLimit) if self._frameRateLimit > 0 else 0
 
     @property
     def variables(self):
@@ -88,7 +92,7 @@ class Window:
         self._variables = variables
 
     def update(self, still_frame_optimization: bool = False):
-        if self.__Window_Active__:
+        if self.__WindowActive__:
             if still_frame_optimization:
                 if AllEvents() or any(KeyboardState()):
                     self._cache["times"]["optimized_time"]["time_start"].restart()
@@ -97,15 +101,15 @@ class Window:
                         if not self._cache["times"]["optimized_time"]["time_loop"].tick(True):
                             return False
             if self._cache["times"]["standard_time"].tick(True):
-                self.fps = get_fps_from_time(self._cache["times"]["standard_time"])
+                self.frameRate = get_fps_from_time(self._cache["times"]["standard_time"])
 
                 self._resolution = list(sdl2.SDL_GetWindowSize(self.window))
 
-                if WindowEvents(self.__Window_Id__, 14):
+                if WindowEvents(self.__WindowId__, 14):
                     self.close()
                     return
 
-                self.draw_objects.clear()
+                self.drawnObjects.clear()
                 self._cache["clear_screen"] = True
                 self._cache["fill"] = True
 
@@ -144,10 +148,10 @@ class Window:
         if self.context is not None:
             sdl2.SDL_GL_DeleteContext(self.context)
         self.window = self.renderer = None
-        self.__Window_Active__ = False
+        self.__WindowActive__ = False
 
     def clear(self, force=False, color=(0, 0, 0, 255)):
-        if self.__Window_Active__ and not (self.flags >> 1) & 1:
+        if self.__WindowActive__ and not (self.flags >> 1) & 1:
             if force or self._cache["clear_screen"]:
                 tmp = self.color
                 self.color = color
@@ -166,7 +170,7 @@ class Window:
         return _Image
 
     def blit(self, surface: Image | sdl2.SDL_Surface | sdl2.SDL_Texture, location=(0, 0), size=None, rotation: int = 0):
-        if self.__Window_Active__ and not (self.flags >> 1) & 1:
+        if self.__WindowActive__ and not (self.flags >> 1) & 1:
             create_texture = False
             if isinstance(surface, Image):
                 texture = sdl2.SDL_CreateTextureFromSurface(self.renderer, surface.images[0])
@@ -195,9 +199,21 @@ class Window:
         sdlgfx.pixelRGBA(self.renderer, *location, *color.RGBA)
 
     def drawSquare(self, location, size, rotation, radius, color: Color):
-        if self.__Window_Active__ and not (self.flags >> 1) & 1:
+        if self.__WindowActive__ and not (self.flags >> 1) & 1:
             def _square(renderer_, location_, size_, radius_, color_):
-                if radius_ > 0:
+                if isinstance(radius_, (tuple, list)) and len(radius_) == 4:
+                    if all(x == radius_[0] for x in radius_):
+                        sdlgfx.roundedBoxRGBA(renderer_, location_[0], location_[1], location_[0] + size_[0] - 1, location_[1] + size_[1] - 1, radius_[0], *color_.RGBA)
+                    else:
+                        sdlgfx.filledPieRGBA(renderer_, location_[0] + radius_[0], location_[1] + radius_[0], radius_[0], 180, 270, *color_.RGBA)
+                        sdlgfx.filledPieRGBA(renderer_, location_[0] + radius_[1] - 1, location_[1] + size_[1] - radius_[1] - 1, radius_[1], 90, 180, *color_.RGBA)
+                        sdlgfx.filledPieRGBA(renderer_, location_[0] + radius_[1] + size_[0] - radius_[1] - radius_[2] - 1, location_[1] + size_[1] - radius_[2] - 1, radius_[2], 0, 90, *color_.RGBA)
+                        sdlgfx.filledPieRGBA(renderer_, location_[0] + radius_[0] + size_[0] - radius_[0] - radius_[3] - 1, location_[1] + radius_[3], radius_[3], 270, 360, *color_.RGBA)
+                        sdlgfx.boxRGBA(renderer_, location_[0] + radius_[0], location_[1], location_[0] + size_[0] - 1 - radius_[3], location_[1] + size_[1] // 2 - 1, *color_.RGBA)
+                        sdlgfx.boxRGBA(renderer_, location_[0] + radius_[1], location_[1] + size_[1] // 2, location_[0] + size_[0] - 1 - radius_[2], location_[1] + size_[1] - 1, *color_.RGBA)
+                        sdlgfx.boxRGBA(renderer_, location_[0], location_[1] + radius_[0], location_[0] + size_[0] // 2 - 1, location_[1] + size_[1] - 1 - radius_[1], *color_.RGBA)
+                        sdlgfx.boxRGBA(renderer_, location_[0] + size_[0] // 2, location_[1] + radius_[3], location_[0] + size_[0] - 1, location_[1] + size_[1] - 1 - radius_[2], *color_.RGBA)
+                elif isinstance(radius_, int) and radius_ > 0:
                     sdlgfx.roundedBoxRGBA(renderer_, location_[0], location_[1], location_[0] + size_[0] - 1, location_[1] + size_[1] - 1, radius_, *color_.RGBA)
                 else:
                     sdlgfx.boxRGBA(renderer_, location_[0], location_[1], location_[0] + size_[0] - 1, location_[1] + size_[1] - 1, *color_.RGBA)
@@ -215,7 +231,7 @@ class Window:
                 _square(self.renderer, location, size, radius, color)
 
     def drawEdgesSquare(self, location, size, rotation, line_size, radius, color: Color):
-        if self.__Window_Active__ and not (self.flags >> 1) & 1:
+        if self.__WindowActive__ and not (self.flags >> 1) & 1:
             if line_size != 0:
                 def _hollow_square(renderer_, location_, size_, line_size_, radius_, color_):
                     for num in range(line_size_ if line_size_ > 0 else -line_size_):
@@ -237,7 +253,7 @@ class Window:
                     _hollow_square(self.renderer, location, size, line_size, radius, color)
 
     def drawLine(self, start, end, size, color: Color):
-        if self.__Window_Active__ and not (self.flags >> 1) & 1:
+        if self.__WindowActive__ and not (self.flags >> 1) & 1:
             if size != 0:
                 if size == 1:
                     sdlgfx.aalineRGBA(self.renderer, *start, *end, *color.RGBA)
@@ -245,7 +261,7 @@ class Window:
                     sdlgfx.thickLineRGBA(self.renderer, *start, *end, size if size > 0 else -size, *color.RGBA)
 
     def drawPolygon(self, location, scale, rotation: int, mesh: list[list[int, int]], color: Color):
-        if self.__Window_Active__ and not (self.flags >> 1) & 1:
+        if self.__WindowActive__ and not (self.flags >> 1) & 1:
             _mesh = [(round(point[0] * scale[0]), round(point[1] * scale[1])) for point in mesh]
 
             if rotation != 0:
@@ -260,7 +276,7 @@ class Window:
             sdlgfx.filledPolygonRGBA(self.renderer, (sdl2.Sint16 * _n)(*map(int, _vx)), (sdl2.Sint16 * _n)(*map(int, _vy)), _n, *color.RGBA)
 
     def drawEdgesPolygon(self, location, scale, rotation, mesh, color: Color):
-        if self.__Window_Active__ and not (self.flags >> 1) & 1:
+        if self.__WindowActive__ and not (self.flags >> 1) & 1:
             _mesh = [(round(point[0] * scale[0]), round(point[1] * scale[1])) for point in mesh]
 
             if rotation != 0:
@@ -343,7 +359,7 @@ class Window:
 
     @property
     def location(self):
-        if self.__Window_Active__:
+        if self.__WindowActive__:
             x, y = c_int(), c_int()
             sdl2.SDL_GetWindowPosition(self.window, x, y)
             return x.value, y.value
@@ -351,19 +367,19 @@ class Window:
 
     @location.setter
     def location(self, location):
-        if self.__Window_Active__:
+        if self.__WindowActive__:
             sdl2.SDL_SetWindowPosition(self.window, location[0], location[1])
         self._location = location[0], location[1]
 
     @property
     def resolution(self) -> tuple:
-        if self.__Window_Active__:
+        if self.__WindowActive__:
             return sdl2.SDL_GetWindowSize(self.window)
         return self._resolution
 
     @resolution.setter
     def resolution(self, resolution):
-        if self.__Window_Active__:
+        if self.__WindowActive__:
             sdl2.SDL_SetWindowSize(self.window, resolution[0], resolution[1])
         self._resolution = resolution
 
@@ -433,7 +449,7 @@ class Window:
 
     def set_BorderColor(self, color: Color | None):
         if Platform.system.lower() == "windows" and Platform.system_version >= 22000:
-            windll.dwmapi.DwmSetWindowAttribute(self._hwnd, 34, byref(c_int(0xFFFFFFFE if color is None else color.Uint32 & ~0xFF000000)), sizeof(c_int))
+            windll.dwmapi.DwmSetWindowAttribute(self._hwnd, 34, byref(c_int(0xFFFFFFFE if color is None or color.a == 0 else color.Uint32 & ~0xFF000000)), sizeof(c_int))
         else:
             LogError("")
 

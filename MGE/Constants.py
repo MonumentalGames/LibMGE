@@ -3,7 +3,7 @@ from ._sdl.sdl2 import SDL_PIXELFORMAT_RGB24, SDL_PIXELFORMAT_ARGB4444, SDL_PIXE
 
 __all__ = ["WindowFlag", "WindowEvent", "RenderDriver", "ImageFormat",
            "ControllerType", "ControllerButton",
-           "MouseButton", "KeyboardButton",
+           "ConstMouseButton", "KeyboardButton",
            "Vector", "Pivot2D", "Meshes2D", "All"]
 
 All = -1
@@ -106,7 +106,7 @@ class ControllerButton:
     Paddle4 = 19
     Touchpad = 20
 
-class MouseButton:
+class ConstMouseButton:
     Left = 1
     Middle = 2
     Right = 3

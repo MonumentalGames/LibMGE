@@ -6,8 +6,6 @@ from .Log import LogError
 
 __all__ = ["Sound", "Music"]
 
-#sdlmixer.Mix_MasterVolume(self._volume)
-
 class Sound:
     def __init__(self, path, preload=True):
         self._path = path
@@ -74,7 +72,7 @@ class Music:
 
     @property
     def position(self):
-        return sdlmixer.Mix_GetMusicPosition(self.music)
+        return round(sdlmixer.Mix_GetMusicPosition(self.music))
 
     @position.setter
     def position(self, position):

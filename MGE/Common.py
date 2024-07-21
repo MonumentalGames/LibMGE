@@ -9,7 +9,8 @@ from .Constants import All, Pivot2D
 from .Mesh import edges, calculate_square_vertices, line_intersection
 
 __all__ = ["_temp", "init", "update", "SetLogicClock", "GetLogicClock", "OpenUrl",
-           "AllEvents", "QuitEvent", "WindowEvents", "AutoCalcs2D"]
+           "AllEvents", "QuitEvent", "WindowEvents", "AutoCalcs2D",
+           "_calculate_size", "_calculate_location", "_calculate_object2d", "_calculate_line"]
 
 class _temp:
     LogicClock = 1024
@@ -26,7 +27,7 @@ class _temp:
         KeyboardCache.append(True)
 
     MouseState = [False, False, False, False, False]
-    Mouse = {"button_cache": [False, False, False, False, False]}
+    Mouse = {"location": None, "button_cache": [False, False, False, False, False]}
 
     MouseCursor = 0
 
@@ -110,50 +111,43 @@ def WindowEvents(window: int = All, event: int = All):
     return 0
 
 class AutoCalcs2D:
-    #@staticmethod
-    #def Percent(percent: int):
-    #    def _func(window_resolution):
-    #        return window_resolution / 100 * percent
-    #    return _func
     @staticmethod
     def Percent(percent: int):
-        return lambda window_resolution: window_resolution / 100 * percent
+        return lambda location, size, size_window, scale: size_window / 100 * percent
 
     @staticmethod
     def Center():
-        def _func(window_resolution):
-            return window_resolution / 2
-        return _func
+        return lambda location, size, size_window, scale: size_window / 2
 
-def _calculate_size(size, size_window, scale) -> list:
-    return [round(size[num](size_window[num]) * scale[num]) if callable(size[num]) else round(size[num] * scale[num]) for num in range(2)]
+def _calculate_size(location, size, size_window, scale) -> list:
+    return [round(size[num](location[num], size[num], size_window[num], scale[num]) * scale[num]) if callable(size[num]) else round(size[num] * scale[num]) for num in range(2)]
 
-def _calculate_location(location, size_window) -> list:
-    return [round(location[num](size_window[num])) if callable(location[num]) else round(location[num]) for num in range(2)]
+def _calculate_location(location, size, size_window, scale) -> list:
+    return [round(location[num](location[num], size[num], size_window[num], scale[num])) if callable(location[num]) else round(location[num]) for num in range(2)]
 
 def _calculate_object2d(location, size, rotation, scale, window, camera, pivot) -> list[bool, list[int, int], list[int, int]]:
-    cache_location_camera = camera.location if camera is not None else window.camera.location
-    cache_size_screen = window.logicalResolution
+    _location_camera = camera.location if camera is not None else window.camera.location
+    _size_window = window.logicalResolution
 
-    cache_size = _calculate_size(size, cache_size_screen, scale)
-    cache_location = _calculate_location(location, cache_size_screen)
+    _size = _calculate_size((0, 0), size, _size_window, scale)
+    _location = _calculate_location(location, _size, _size_window, scale)
 
-    cache_location = [cache_location[0] + cache_location_camera[0], cache_location[1] + cache_location_camera[1]]
+    _location = [_location[0] + _location_camera[0], _location[1] + _location_camera[1]]
 
     if pivot == Pivot2D.Center:
-        cache_location = [cache_location[0] - int(cache_size[0] // 2), cache_location[1] - int(cache_size[1] // 2)]
+        _location = [_location[0] - int(_size[0] // 2), _location[1] - int(_size[1] // 2)]
     elif pivot == Pivot2D.TopRightSide:
-        cache_location[1] -= cache_size[1]
+        _location[1] -= _size[1]
     elif pivot == Pivot2D.LowerLeftSide:
-        cache_location[0] -= cache_size[0]
+        _location[0] -= _size[0]
     elif pivot == Pivot2D.LowerRightSide:
-        cache_location = [cache_location[0] - cache_size[0], cache_location[1] - cache_size[1]]
+        _location = [_location[0] - _size[0], _location[1] - _size[1]]
 
     render = False
-    if cache_size[0] * -1 < cache_location[0] < cache_size_screen[0] and cache_size[1] * -1 < cache_location[1] < cache_size_screen[1]:
+    if _size[0] * -1 < _location[0] < _size_window[0] and _size[1] * -1 < _location[1] < _size_window[1]:
         render = True
     else:
-        tt = edges(calculate_square_vertices(cache_location, cache_size, rotation))
+        tt = edges(calculate_square_vertices(_location, _size, rotation))
         win_tt = edges([(0, 0), (0, window.resolution[1]), window.resolution, (window.resolution[0], 0)])
 
         for num in range(4):
@@ -161,27 +155,27 @@ def _calculate_object2d(location, size, rotation, scale, window, camera, pivot) 
                 if line_intersection(tt[num][0], tt[num][1], win_tt[num2][0], win_tt[num2][1]):
                     render = True
 
-    return [render, cache_location, cache_size]
+    return [render, _location, _size]
 
 def _calculate_line(start, end, size, window, camera) -> list[bool, list[int, int], list[int, int], int]:
-    cache_location_camera = camera.location if camera is not None else window.camera.location
-    cache_size_screen = window.resolution
+    _location_camera = camera.location if camera is not None else window.camera.location
+    _size_window = window.resolution
 
-    cache_size = _calculate_size([size, 0], cache_size_screen, [1, 1])
-    cache_start = _calculate_location(start, cache_size_screen)
-    cache_end = _calculate_location(end, cache_size_screen)
+    _size = _calculate_size((0, 0), (size, 0), _size_window, (1, 1))
+    _start = _calculate_location(start, _size, _size_window, (1, 1))
+    _end = _calculate_location(end, _size, _size_window, (1, 1))
 
-    cache_start = [cache_start[0] + cache_location_camera[0], cache_start[1] + cache_location_camera[1]]
-    cache_end = [cache_end[0] + cache_location_camera[0], cache_end[1] + cache_location_camera[1]]
+    _start = [_start[0] + _location_camera[0], _start[1] + _location_camera[1]]
+    _end = [_end[0] + _location_camera[0], _end[1] + _location_camera[1]]
 
     render = False
-    if (cache_size[0] * -1 < cache_start[0] < cache_size_screen[0] and (cache_size[0] * -1) < cache_start[1] < cache_size_screen[1]) or ((cache_size[0] * -1) < cache_end[0] < cache_size_screen[0] and (cache_size[0] * -1) < cache_end[1] < cache_size_screen[1]):
+    if (_size[0] * -1 < _start[0] < _size_window[0] and (_size[0] * -1) < _start[1] < _size_window[1]) or ((_size[0] * -1) < _end[0] < _size_window[0] and (_size[0] * -1) < _end[1] < _size_window[1]):
         render = True
     else:
         win_tt = edges([(0, 0), (0, window.resolution[1]), window.resolution, (window.resolution[0], 0)])
 
         for num in range(4):
-            if line_intersection(cache_start, cache_end, win_tt[num][0], win_tt[num][1]):
+            if line_intersection(_start, _end, win_tt[num][0], win_tt[num][1]):
                 render = True
 
-    return [render, cache_start, cache_end, cache_size[0]]
+    return [render, _start, _end, _size[0]]

@@ -27,7 +27,6 @@ class DLL(object):
         else:
             func = getattr(self._dll, func_name, None)
             if not func:
-                print(f"error -> {func_name}")
                 LogError(f"{func_name}")
                 return NullFunction
             func.argtypes, func.restype = args, returns

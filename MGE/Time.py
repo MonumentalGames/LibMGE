@@ -58,4 +58,4 @@ def fps_to_time(target_fps):
     return 0 if target_fps == 0 else 1.0 / target_fps
 
 def get_fps_from_time(object_time: Time) -> int:
-    return round(1 / object_time._elapsed_time if not object_time._elapsed_time == 0 else 1 / object_time._delta_time)
+    return round(1 / object_time._elapsed_time if not object_time._elapsed_time == 0 else 1 / (object_time._delta_time if object_time._delta_time > 0 else 1))

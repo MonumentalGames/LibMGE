@@ -6,7 +6,7 @@ from .Common import _temp, AllEvents
 
 __all__ = ["GetMousePosition", "GetMouseGlobalPosition", "SetMousePosition", "SetMouseGlobalPosition",
            "SetMouseVisibility", "SetMouseCursor",
-           "MouseMotion", "MouseGlobalMotion", "MouseButton", "MouseScroll", "MouseState"]
+           "MouseMotion", "MouseGlobalMotion", "MouseButton", "MouseScroll", "MouseState", "MouseMovement"]
 
 def MouseState(button):
     if button == -1:
@@ -37,6 +37,17 @@ def SetMouseVisibility(visibility=True):
 def SetMouseCursor(cursor):
     #sdl2.SDL_SetCursor(_temp.MouseCursors[cursor if 0 <= cursor <= 12 else 0])
     _temp.MouseCursor = cursor if 0 <= cursor <= 12 else 0
+
+def MouseMovement():
+    loc = GetMousePosition()
+    if _temp.Mouse["location"] != list(loc):
+        if _temp.Mouse["location"] is None:
+            _temp.Mouse["location"] = list(loc)
+        ret = _temp.Mouse["location"][0] - loc[0], _temp.Mouse["location"][1] - loc[1]
+        _temp.Mouse["location"] = loc
+        return ret
+    else:
+        return 0, 0
 
 def MouseMotion(axis, speed):
     _window_resolution = sdl2.SDL_GetWindowSize(sdl2.SDL_GetMouseFocus())

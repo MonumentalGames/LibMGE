@@ -118,7 +118,7 @@ class Button(_button):
         self.button_active = False
 
     def render(self, window):
-        if self.object_render:
+        if self.object_render or self.always_render:
             if len(self._material.textures) > 0:
                 if self.cache_object is None:
                     self._material.update()
@@ -150,14 +150,14 @@ class Button(_button):
                 self._material_hover.update()
             self.object_render = False
 
-    def draw_button(self, window, camera: Camera = None):
-        if window.__Window_Active__:
-            if self not in window.draw_objects:
+    def drawObject(self, window, camera: Camera = None):
+        if window.__WindowActive__:
+            if self not in window.drawnObjects:
                 render, cache_location, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
                 if render:
-                    window.draw_objects.append(self)
-                    if self.object_render or self.always_render:
-                        self.render(window)
+                    window.drawnObjects.append(self)
+
+                    self.render(window)
 
                     _material, _cache_object, _cache_object_tx = (self._material_hover, self.cache_object_hover, self.cache_object_tx_hover) if simpleHover(window, cache_location, cache_size) else (self._material, self.cache_object, self.cache_object_tx)
 
@@ -193,7 +193,7 @@ class Button(_button):
     def material(self, material: Material):
         if self._material != material:
             self._material = material
-            self.object_render = self._material.object_render = False
+            self.object_render = False
 
     @property
     def materialHover(self):
@@ -203,14 +203,12 @@ class Button(_button):
     def materialHover(self, material: Material):
         if self._material_hover != material:
             self._material_hover = material
-            self.object_render = self._material_hover.object_render = False
+            self.object_render = False
 
 class ButtonText(_button, _ObjectText):
-    def __init__(self, location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), text="button", material=DefaultMaterial, material_hover=DefaultMaterial):
+    def __init__(self, location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), font_size: int = 20, text: str = "", font=_DefaultFont, material=DefaultMaterial, material_hover=DefaultMaterial):
         super().__init__(location, rotation, size, scale)
-        super(_button, self).__init__(20, text, _DefaultFont)
-
-        #self._text = _ObjectText(20, text, _DefaultFont)
+        super(_button, self).__init__(font_size, text, font)
 
         self._border_size = 0
         self._border_color = Color((100, 100, 255))
@@ -226,7 +224,8 @@ class ButtonText(_button, _ObjectText):
 
         self._showMoreDetailsOfCollisions = False
 
-        self.object_render = self.thed_render = self.always_render = False
+        self.object_render = True
+        self.thed_render = self.always_render = False
 
         self.cache_object = None
         self.cache_object_hover = None
@@ -236,7 +235,7 @@ class ButtonText(_button, _ObjectText):
         self.button_active = False
 
     def render(self, window):
-        if not self.object_render:
+        if self.object_render or self.always_render:
             self._render()
             if len(self._material.textures) > 0:
                 if self.cache_object is None:
@@ -245,6 +244,14 @@ class ButtonText(_button, _ObjectText):
                     if self.cache_object_tx is not None:
                         sdl2.SDL_DestroyTexture(self.cache_object_tx)
                     self.cache_object_tx = sdl2.SDL_CreateTextureFromSurface(window.renderer, self.cache_object).contents
+            else:
+                if self.cache_object is not None:
+                    self.cache_object = None
+                    if self.cache_object_tx is not None:
+                        sdl2.SDL_DestroyTexture(self.cache_object_tx)
+                        self.cache_object_tx = None
+                self._material.update()
+
             if len(self._material_hover.textures) > 0:
                 if self.cache_object_hover is None:
                     self._material_hover.update()
@@ -253,36 +260,35 @@ class ButtonText(_button, _ObjectText):
                         sdl2.SDL_DestroyTexture(self.cache_object_tx_hover)
                     self.cache_object_tx_hover = sdl2.SDL_CreateTextureFromSurface(window.renderer, self.cache_object_hover).contents
             else:
-                if self.cache_object is not None or self.cache_object_hover is not None:
-                    self.cleanCache()
-                self._material.update()
-            self.object_render = True
+                if self.cache_object_hover is not None:
+                    self.cache_object_hover = None
+                    if self.cache_object_tx_hover is not None:
+                        sdl2.SDL_DestroyTexture(self.cache_object_tx_hover)
+                        self.cache_object_tx_hover = None
+                self._material_hover.update()
+            self.object_render = False
 
-    def draw_button(self, window, camera: Camera = None, render=True):
-        if window.__Window_Active__:
-            if self not in window.draw_objects:
-                window.draw_objects.append(self)
+    def drawObject(self, window, camera: Camera = None, render=True):
+        if window.__WindowActive__:
+            if self not in window.drawnObjects:
+                window.drawnObjects.append(self)
                 _render, cache_location, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
                 if _render:
-                    if not self.object_render or self.always_render or window.render_all_objects:
-                        self.object_render = False
-                        self.render(window)
+
+                    self.render(window)
 
                     _material, _cache_object, _cache_object_tx = (self._material_hover, self.cache_object_hover, self.cache_object_tx_hover) if simpleHover(window, cache_location, cache_size) else (self._material, self.cache_object, self.cache_object_tx)
 
                     if _cache_object is None:
                         window.drawSquare(cache_location, cache_size, self._rotation, self._border_radius[0], _material.color)
                     else:
-                        ret = _material.update()
-                        if ret:
-                            _cache_object = _material.surface
-                            sdl2.SDL_UpdateTexture(_cache_object_tx, None, _cache_object.pixels, _cache_object.pitch)
+                        _material.update()
+                        _cache_object = _material.surface
+                        sdl2.SDL_UpdateTexture(_cache_object_tx, None, _cache_object.pixels, _cache_object.pitch)
                         window.blit(_cache_object_tx, cache_location, cache_size, self._rotation)
-
                     if render:
                         self._render()
                     window.blit(self._surface, [cache_location[0] + (cache_size[0] // 2) - (self.surfaceSize[0] // 2), cache_location[1] + (cache_size[1] // 2) - (self.surfaceSize[1] // 2)], None, self._rotation)
-
                     if self._border_size != 0:
                         window.drawEdgesSquare(cache_location, cache_size, self._rotation, self._border_size, self._border_radius[0], self._border_color)
 
@@ -308,7 +314,7 @@ class ButtonText(_button, _ObjectText):
     def material(self, material: Material):
         if self._material != material:
             self._material = material
-            self.object_render = self._material.object_render = False
+            self.object_render = True
 
     @property
     def materialHover(self):
@@ -318,7 +324,7 @@ class ButtonText(_button, _ObjectText):
     def materialHover(self, material: Material):
         if self._material_hover != material:
             self._material_hover = material
-            self.object_render = self._material_hover.object_render = False
+            self.object_render = True
 
 class ButtonImage(_button):
     def __init__(self, location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), image=None, image_hover=None):
@@ -359,13 +365,14 @@ class ButtonImage(_button):
                     sdl2.SDL_DestroyTexture(self.cache_object_tx_hover)
                 self.cache_object_tx_hover = sdl2.SDL_CreateTextureFromSurface(window.renderer, self.cache_object_hover).contents
                 sdl2.SDL_SetTextureScaleMode(self.cache_object_tx_hover, 1)
+        self.object_render = True
 
-    def draw_button(self, window, camera: Camera = None):
-        if window.__Window_Active__:
-            if self not in window.draw_objects:
+    def drawObject(self, window, camera: Camera = None):
+        if window.__WindowActive__:
+            if self not in window.drawnObjects:
                 render, cache_location, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
                 if render:
-                    window.draw_objects.append(self)
+                    window.drawnObjects.append(self)
                     if not self.object_render or self.always_render or window.render_all_objects:
                         self.object_render = False
                         self.render(window)

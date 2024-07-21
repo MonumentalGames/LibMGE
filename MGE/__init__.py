@@ -20,6 +20,6 @@ from .Keyboard import keyboard
 from .GameController import *
 from .Button import *
 from .Time import *
-from .Version import __version__, __version_data__, __version_list__
+from .Version import __version__, __versionData__, __versionList__
 
-print(f"{'MGE' if __version_data__['phase'] == 'Stable' else __version_data__['phase'] + '-MGE'} {__version__} (SDL {Platform.SDL.SDL_version} | Python {Platform.python_version})")
+print(f"{'MGE' if __versionData__['phase'] == 'Stable' else __versionData__['phase'] + '-MGE'} {__version__} (SDL {Platform.SDL.SDL_version} | Python {Platform.python_version})")

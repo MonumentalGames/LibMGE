@@ -29,6 +29,9 @@ class Texture:
 
     def render(self, renderer, force=False):
         if not self._render or force:
+            if id(renderer) in self._tx:
+                for tx in self._tx[id(renderer)]:
+                    sdl2.SDL_DestroyTexture(tx)
             self._tx[id(renderer)] = []
             self._tx[id(renderer)].clear()
             if self._image.count == 1:
@@ -38,10 +41,11 @@ class Texture:
                 for num in range(self._image.count):
                     self._tx[id(renderer)].append(sdl2.SDL_CreateTextureFromSurface(renderer, self._image.images[num]).contents)
             self._UpdateScaleMode()
+            self._render = True
         return self.tx
 
     def tx(self, renderer):
-        if id(renderer) not in self._tx:
+        if id(renderer) not in self._tx or not self._render:
             self.render(renderer, True)
         if len(self._tx[id(renderer)]) == 1:
             return self._tx[id(renderer)][0]
@@ -49,10 +53,11 @@ class Texture:
         if self._time_frame > 1:
             _time_int = int(self._time_frame)
             self._time_frame -= _time_int
-            self._frame = 0 if self._frame >= self._image.count - 1 else self._frame + _time_int
-            # erro nos tempos
-            #print(len(self._image.delays), self._frame)
-            #print(self._image.delays[self._frame] / 1000)
+
+            self._frame += _time_int
+            if self._frame >= self._image.count:
+                self._frame = self._frame % self._image.count
+
             self._time.delta_time = self._image.delays[self._frame] / 1000
         return self._tx[id(renderer)][self._image.count - 1 if self._frame >= self._image.count else self._frame]
 
@@ -73,6 +78,7 @@ class Texture:
     def image(self, image: Image = None):
         if isinstance(image, Image):
             self._image = image
+            self._render = False
 
     @property
     def alpha(self):
