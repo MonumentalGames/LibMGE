@@ -20,8 +20,7 @@ SDL_LIL_ENDIAN = 1234
 SDL_BIG_ENDIAN = 4321
 SDL_BYTEORDER = SDL_LIL_ENDIAN if sys.byteorder == "little" else SDL_BIG_ENDIAN
 
-dll = DLL(find_path("SDL2.dll"))
-SDLFunc = dll.bind_function
+SDLFunc = DLL(find_path("SDL2.dll")).bind_function
 
 SDLFunc("SDL_SetMainReady")()
 
@@ -36,11 +35,11 @@ SDL_INIT_SENSOR = 0x00008000
 SDL_INIT_NOPARACHUTE = 0x00100000
 SDL_INIT_EVERYTHING = (SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER | SDL_INIT_SENSOR)
 
-SDL_Init = SDLFunc("SDL_Init", [c_uint32], c_int)
-SDL_InitSubSystem = SDLFunc("SDL_InitSubSystem", [c_uint32], c_int)
-SDL_QuitSubSystem = SDLFunc("SDL_QuitSubSystem", [c_uint32])
-SDL_WasInit = SDLFunc("SDL_WasInit", [c_uint32], c_uint32)
-SDL_Quit = SDLFunc("SDL_Quit")
+def SDL_Init(s): return SDLFunc("SDL_Init", [c_uint32], c_int)(s)
+def SDL_InitSubSystem(s): return SDLFunc("SDL_InitSubSystem", [c_uint32], c_int)(s)
+def SDL_QuitSubSystem(s): return SDLFunc("SDL_QuitSubSystem", [c_uint32])(s)
+def SDL_WasInit(s): return SDLFunc("SDL_WasInit", [c_uint32], c_uint32)(s)
+def SDL_Quit(): return SDLFunc("SDL_Quit")()
 
 class SDL_version(Structure):
     _fields_ = [("major", Uint8), ("minor", Uint8), ("patch", Uint8)]
@@ -50,25 +49,22 @@ def SDL_GetVersion() -> SDL_version:
     SDLFunc("SDL_GetVersion", [_P(SDL_version)])(version)
     return version
 
-SDL_GetRevision = SDLFunc("SDL_GetRevision", None, c_char_p)
+def SDL_GetRevision(): return SDLFunc("SDL_GetRevision", None, c_char_p)().decode()
 
-def SDL_GetPlatform():
-    return SDLFunc("SDL_GetPlatform", None, c_char_p)().decode()
+def SDL_GetPlatform(): return SDLFunc("SDL_GetPlatform", None, c_char_p)().decode()
 
 SDL_LOG_PRIORITY_INFO = 3
 SDL_LOG_PRIORITY_WARN = 4
 SDL_LOG_PRIORITY_ERROR = 5
 SDL_LOG_PRIORITY_CRITICAL = 6
 
-def SDL_LogMessage(priority, msg):
-    SDLFunc("SDL_LogMessage", [c_int, c_int, c_char_p])(0, priority if 3 <= priority <= 6 else 3, msg.encode())
+def SDL_LogMessage(priority, msg): SDLFunc("SDL_LogMessage", [c_int, c_int, c_char_p])(0, priority if 3 <= priority <= 6 else 3, msg.encode())
 
 SDL_MESSAGEBOX_ERROR = 0x00000010
 SDL_MESSAGEBOX_WARNING = 0x00000020
 SDL_MESSAGEBOX_INFORMATION = 0x00000040
 
-def SDL_ShowSimpleMessageBox(flags, title, msg):
-    return SDLFunc("SDL_ShowSimpleMessageBox", [Uint32, c_char_p, c_char_p, c_char_p], c_int)(flags, title.encode(), msg.encode(), None)
+def SDL_ShowSimpleMessageBox(flags, title, msg): return SDLFunc("SDL_ShowSimpleMessageBox", [Uint32, c_char_p, c_char_p, c_char_p], c_int)(flags, title.encode(), msg.encode(), None)
 
 HWND = c_void_p
 HDC = c_void_p
@@ -125,14 +121,30 @@ class _hidden(Union):
 class SDL_RWops(Structure):
     pass
 
-SDL_RWops._fields_ = [("size", CFUNCTYPE(Sint64, _P(SDL_RWops))),
-                      ("seek", CFUNCTYPE(Sint64, _P(SDL_RWops), Sint64, c_int)),
-                      ("read", CFUNCTYPE(c_size_t, _P(SDL_RWops), c_void_p, c_size_t, c_size_t)),
-                      ("write", CFUNCTYPE(c_size_t, _P(SDL_RWops), c_void_p, c_size_t, c_size_t)),
-                      ("close", CFUNCTYPE(c_int, _P(SDL_RWops))),
-                      ("type", Uint32), ("hidden", _hidden)]
+_sdlsize = CFUNCTYPE(Sint64, _P(SDL_RWops))
+_sdlseek = CFUNCTYPE(Sint64, _P(SDL_RWops), Sint64, c_int)
+_sdlread = CFUNCTYPE(c_size_t, _P(SDL_RWops), c_void_p, c_size_t, c_size_t)
+_sdlwrite = CFUNCTYPE(c_size_t, _P(SDL_RWops), c_void_p, c_size_t, c_size_t)
+_sdlclose = CFUNCTYPE(c_int, _P(SDL_RWops))
+SDL_RWops._fields_ = [
+    ("size", _sdlsize),
+    ("seek", _sdlseek),
+    ("read", _sdlread),
+    ("write", _sdlwrite),
+    ("close", _sdlclose),
+    ("type", Uint32),
+    ("hidden", _hidden),
+]
 
 SDL_RWFromFile = SDLFunc("SDL_RWFromFile", [c_char_p, c_char_p], _P(SDL_RWops))
+
+SDL_RWFromMem = SDLFunc("SDL_RWFromMem", [c_void_p, c_int], _P(SDL_RWops))
+SDL_RWFromConstMem = SDLFunc("SDL_RWFromConstMem", [c_char_p, c_int], _P(SDL_RWops))
+#SDL_RWFromConstMem = SDLFunc("SDL_RWFromConstMem", [c_void_p, c_int], _P(SDL_RWops))
+
+SDL_RWclose = SDLFunc("SDL_RWclose", [_P(SDL_RWops)], c_int)
+SDL_AllocRW = SDLFunc("SDL_AllocRW", None, _P(SDL_RWops))
+SDL_FreeRW = SDLFunc("SDL_FreeRW", [_P(SDL_RWops)])
 
 SDL_PowerState = c_int
 SDL_POWERSTATE_UNKNOWN = 0
@@ -170,11 +182,15 @@ def SDL_GetPreferredLocales():
         p = p + loc_size
     return locales
 
-SDL_SetClipboardText = SDLFunc("SDL_SetClipboardText", [c_char_p], c_int)
-SDL_GetClipboardText = SDLFunc("SDL_GetClipboardText", None, c_char_p)
-SDL_HasClipboardText = SDLFunc("SDL_HasClipboardText", None, SDL_bool)
+def SDL_SetClipboardText(text): return bool(SDLFunc("SDL_SetClipboardText", [c_char_p], c_int)(text.encode()))
+def SDL_GetClipboardText(): return SDLFunc("SDL_GetClipboardText", None, c_char_p)().decode()
+def SDL_HasClipboardText(): return bool(SDLFunc("SDL_HasClipboardText", None, SDL_bool)())
 
-SDL_OpenURL = SDLFunc("SDL_OpenURL", [c_char_p], c_int)
+def SDL_SetPrimarySelectionText(text): return bool(SDLFunc("SDL_SetPrimarySelectionText", [c_char_p], c_int)(text.encode()))
+def SDL_GetPrimarySelectionText(): return SDLFunc("SDL_GetPrimarySelectionText", None, c_char_p)().decode()
+def SDL_HasPrimarySelectionText(): return bool(SDLFunc("SDL_HasPrimarySelectionText", None, SDL_bool)())
+
+def SDL_OpenURL(url: str) -> bool: return bool(SDLFunc("SDL_OpenURL", [c_char_p], c_int)(url.encode()))
 
 # -- audio --
 AUDIO_U16LSB = 0x0010
@@ -299,7 +315,7 @@ class SDL_Surface(Structure):
     _fields_ = [("flags", Uint32), ("format", _P(SDL_PixelFormat)), ("w", c_int), ("h", c_int), ("pitch", c_int),
                 ("pixels", c_void_p), ("userdata", c_void_p), ("list_blitmap", c_void_p), ("refcount", c_int)]
 
-SDL_CreateRGBSurface = SDLFunc("SDL_CreateRGBSurface", [Uint32, c_int, c_int, c_int, Uint32, Uint32, Uint32, Uint32], returns=_P(SDL_Surface))
+def SDL_CreateRGBSurface(flags, width, height, depth, Rmask, Gmask, Bmask, Amask): return SDLFunc("SDL_CreateRGBSurface", [Uint32, c_int, c_int, c_int, Uint32, Uint32, Uint32, Uint32], returns=_P(SDL_Surface))(flags, width, height, depth, Rmask, Gmask, Bmask, Amask)
 SDL_CreateRGBSurfaceWithFormat = SDLFunc("SDL_CreateRGBSurfaceWithFormat", [Uint32, c_int, c_int, c_int, Uint32], returns=_P(SDL_Surface))
 SDL_CreateRGBSurfaceFrom = SDLFunc("SDL_CreateRGBSurfaceFrom", [c_void_p, c_int, c_int, c_int, c_int, Uint32, Uint32, Uint32, Uint32], returns=_P(SDL_Surface))
 SDL_CreateRGBSurfaceWithFormatFrom = SDLFunc("SDL_CreateRGBSurfaceWithFormatFrom", [c_void_p, c_int, c_int, c_int, c_int, Uint32], returns=_P(SDL_Surface))
@@ -312,15 +328,15 @@ SDL_GetSurfaceAlphaMod = SDLFunc("SDL_GetSurfaceAlphaMod", [_P(SDL_Surface), _P(
 SDL_MapRGB = SDLFunc("SDL_MapRGB", [_P(SDL_PixelFormat), Uint8, Uint8, Uint8], Uint32)
 SDL_MapRGBA = SDLFunc("SDL_MapRGBA", [_P(SDL_PixelFormat), Uint8, Uint8, Uint8, Uint8], Uint32)
 
-SDL_FreeSurface = SDLFunc("SDL_FreeSurface", [_P(SDL_Surface)])
-SDL_DuplicateSurface = SDLFunc("SDL_DuplicateSurface", [_P(SDL_Surface)], _P(SDL_Surface))
+def SDL_FreeSurface(surface): SDLFunc("SDL_FreeSurface", [_P(SDL_Surface)])(surface)
+def SDL_DuplicateSurface(surface): return SDLFunc("SDL_DuplicateSurface", [_P(SDL_Surface)], _P(SDL_Surface))(surface)
 SDL_ConvertSurface = SDLFunc("SDL_ConvertSurface", [_P(SDL_Surface), _P(SDL_PixelFormat), Uint32], _P(SDL_Surface))
 SDL_ConvertSurfaceFormat = SDLFunc("SDL_ConvertSurfaceFormat", [_P(SDL_Surface), Uint32, Uint32], _P(SDL_Surface))
 SDL_FillRect = SDLFunc("SDL_FillRect", [_P(SDL_Surface), _P(SDL_Rect), Uint32], c_int)
-SDL_UpperBlit = SDLFunc("SDL_UpperBlit", [_P(SDL_Surface), _P(SDL_Rect), _P(SDL_Surface), _P(SDL_Rect)], returns=c_int)
-SDL_BlitSurface = SDL_UpperBlit
-SDL_UpperBlitScaled = SDLFunc("SDL_UpperBlitScaled", [_P(SDL_Surface), _P(SDL_Rect), _P(SDL_Surface), _P(SDL_Rect)], returns=c_int)
-SDL_BlitScaled = SDL_UpperBlitScaled
+def SDL_UpperBlit(src, srcrect, dst, dstrect): return SDLFunc("SDL_UpperBlit", [_P(SDL_Surface), _P(SDL_Rect), _P(SDL_Surface), _P(SDL_Rect)], returns=c_int)(src, srcrect, dst, dstrect)
+def SDL_BlitSurface(src, srcrect, dst, dstrect): return SDL_UpperBlit(src, srcrect, dst, dstrect)
+def SDL_UpperBlitScaled(src, srcrect, dst, dstrect): return SDLFunc("SDL_UpperBlitScaled", [_P(SDL_Surface), _P(SDL_Rect), _P(SDL_Surface), _P(SDL_Rect)], returns=c_int)(src, srcrect, dst, dstrect)
+def SDL_BlitScaled(src, srcrect, dst, dstrect): return SDL_UpperBlitScaled(src, srcrect, dst, dstrect)
 
 # Window
 SDL_WindowFlags = c_int
@@ -451,16 +467,12 @@ SDL_GetShapedWindowMode = SDLFunc("SDL_GetShapedWindowMode", [_P(SDL_Window), _P
 SDL_GetNumVideoDrivers = SDLFunc("SDL_GetNumVideoDrivers", None, c_int)
 SDL_GetVideoDriver = SDLFunc("SDL_GetVideoDriver", [c_int], c_char_p)
 
-def SDL_VideoInit(driver_name=None):
-    return SDLFunc("SDL_VideoInit", [c_char_p], c_int)(driver_name)
-
-def SDL_VideoQuit():
-    SDLFunc("SDL_VideoQuit")()
+def SDL_VideoInit(driver_name=None): return SDLFunc("SDL_VideoInit", [c_char_p], c_int)(driver_name)
+def SDL_VideoQuit(): SDLFunc("SDL_VideoQuit")()
 
 SDL_GetCurrentVideoDriver = SDLFunc("SDL_GetCurrentVideoDriver", None, c_char_p)
 
-def SDL_GetNumVideoDisplays() -> int:
-    return SDLFunc("SDL_GetNumVideoDisplays", None, c_int)()
+def SDL_GetNumVideoDisplays() -> int: return SDLFunc("SDL_GetNumVideoDisplays", None, c_int)()
 
 def SDL_GetDisplayName(display_index: int) -> str | None:
     ret = SDLFunc("SDL_GetDisplayName", [c_int], c_char_p)(display_index)
@@ -491,20 +503,14 @@ SDL_GetWindowDisplayIndex = SDLFunc("SDL_GetWindowDisplayIndex", [_P(SDL_Window)
 SDL_SetWindowDisplayMode = SDLFunc("SDL_SetWindowDisplayMode", [_P(SDL_Window), _P(SDL_DisplayMode)], c_int)
 SDL_GetWindowDisplayMode = SDLFunc("SDL_GetWindowDisplayMode", [_P(SDL_Window), _P(SDL_DisplayMode)], c_int)
 
-def SDL_CreateWindow(title: str, x: int, y: int, w: int, h: int, flags) -> SDL_Window | None:
-    return SDLFunc("SDL_CreateWindow", [c_char_p, c_int, c_int, c_int, c_int, Uint32], _P(SDL_Window))(title.encode() if type(title) == str else title, x, y, w, h, flags)
+def SDL_CreateWindow(title: str, x: int, y: int, w: int, h: int, flags: int) -> SDL_Window | None: return SDLFunc("SDL_CreateWindow", [c_char_p, c_int, c_int, c_int, c_int, Uint32], _P(SDL_Window))(title.encode() if type(title) == str else title, x, y, w, h, flags)
 
-def SDL_GetWindowID(window: SDL_Window) -> int:
-    return SDLFunc("SDL_GetWindowID", [_P(SDL_Window)], Uint32)(window)
+def SDL_GetWindowID(window: SDL_Window) -> int: return SDLFunc("SDL_GetWindowID", [_P(SDL_Window)], Uint32)(window)
+def SDL_GetWindowFromID(window_id: int) -> SDL_Window: return SDLFunc("SDL_GetWindowFromID", [Uint32], _P(SDL_Window))(window_id)
 
-SDL_GetWindowFromID = SDLFunc("SDL_GetWindowFromID", [Uint32], _P(SDL_Window))
-
-SDL_GetWindowFlags = SDLFunc("SDL_GetWindowFlags", [_P(SDL_Window)], Uint32)
-
-SDL_SetWindowTitle = SDLFunc("SDL_SetWindowTitle", [_P(SDL_Window), c_char_p])
-
-def SDL_GetWindowTitle(window: SDL_Window):
-    return SDLFunc("SDL_GetWindowTitle", [_P(SDL_Window)], c_char_p)(window).decode()
+def SDL_GetWindowFlags(window: SDL_Window) -> int: return SDLFunc("SDL_GetWindowFlags", [_P(SDL_Window)], Uint32)(window)
+def SDL_SetWindowTitle(window: SDL_Window, title: str): SDLFunc("SDL_SetWindowTitle", [_P(SDL_Window), c_char_p])(window, title.encode() if type(title) == str else title)
+def SDL_GetWindowTitle(window: SDL_Window) -> str: return SDLFunc("SDL_GetWindowTitle", [_P(SDL_Window)], c_char_p)(window).decode()
 
 SDL_SetWindowIcon = SDLFunc("SDL_SetWindowIcon", [_P(SDL_Window), _P(SDL_Surface)])
 
@@ -624,11 +630,11 @@ SDL_GetNumRenderDrivers = SDLFunc("SDL_GetNumRenderDrivers", None, c_int)
 SDL_GetRenderDriverInfo = SDLFunc("SDL_GetRenderDriverInfo", [c_int, _P(SDL_RendererInfo)], c_int)
 SDL_CreateWindowAndRenderer = SDLFunc("SDL_CreateWindowAndRenderer", [c_int, c_int, Uint32, _P(_P(SDL_Window)), _P(_P(SDL_Renderer))], returns=c_int)
 
-SDL_CreateRenderer = SDLFunc("SDL_CreateRenderer", [_P(SDL_Window), c_int, Uint32], _P(SDL_Renderer))
+def SDL_CreateRenderer(window, index, flags) -> SDL_Renderer: return SDLFunc("SDL_CreateRenderer", [_P(SDL_Window), c_int, Uint32], _P(SDL_Renderer))(window, index, flags)
 SDL_CreateSoftwareRenderer = SDLFunc("SDL_CreateSoftwareRenderer", [_P(SDL_Surface)], _P(SDL_Renderer))
 
-SDL_GetRenderer = SDLFunc("SDL_GetRenderer", [_P(SDL_Window)], _P(SDL_Renderer))
-SDL_RenderGetWindow = SDLFunc("SDL_RenderGetWindow", [_P(SDL_Renderer)], _P(SDL_Window))
+def SDL_GetRenderer(window) -> SDL_Renderer: return SDLFunc("SDL_GetRenderer", [_P(SDL_Window)], _P(SDL_Renderer))(window)
+def SDL_RenderGetWindow(render) -> SDL_Window: return SDLFunc("SDL_RenderGetWindow", [_P(SDL_Renderer)], _P(SDL_Window))(render)
 
 SDL_SetRenderTarget = SDLFunc("SDL_SetRenderTarget", [_P(SDL_Renderer), _P(SDL_Texture)], c_int)
 SDL_GetRenderTarget = SDLFunc("SDL_GetRenderTarget", [_P(SDL_Renderer)], _P(SDL_Texture))
@@ -970,6 +976,7 @@ SDL_GameControllerHasRumbleTriggers = SDLFunc("SDL_GameControllerHasRumbleTrigge
 SDL_GameControllerSetLED = SDLFunc("SDL_GameControllerSetLED", [_P(SDL_GameController), Uint8, Uint8, Uint8], returns=c_int)
 SDL_GameControllerSendEffect = SDLFunc("SDL_GameControllerSendEffect", [_P(SDL_GameController), c_void_p, c_int], returns=c_int)
 SDL_GameControllerClose = SDLFunc("SDL_GameControllerClose", [_P(SDL_GameController)])
+SDL_GameControllerGetSteamHandle = SDLFunc("SDL_GameControllerGetSteamHandle", [_P(SDL_GameController)], c_uint64)
 
 # events
 SDL_RELEASED = 0

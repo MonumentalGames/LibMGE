@@ -4,9 +4,10 @@ from .Mouse import GetMousePosition
 from .Material import Material, DefaultMaterial
 from .Constants import Pivot2D, Meshes2D
 from .Mesh import *
-from .Common import _temp, _calculate_object2d
+from .Common import _temp, _calculate_object2d, _calculate_size
 from .Time import Time, fps_to_time
 from .Window import Window
+from .InternalWindow import InternalWindow
 from .Color import Color
 from ._sdl import sdl2
 
@@ -18,7 +19,7 @@ class Object2D:
         self._location = list(location)
         self._rotation = rotation
         self._scale = list(scale)
-        self._Mesh = mesh
+        self._mesh = mesh
         self._pivot = Pivot2D.TopLeftSide
         self._border_size = 0
         self._border_color = Color((100, 100, 255))
@@ -39,37 +40,37 @@ class Object2D:
 
     def render(self, window):
         if not self.object_render:
+            s = _calculate_size((0, 0), self._size, window.logicalResolution, self._scale)
             if len(self._material.textures) > 0:
                 if self.cache_object is None:
-                    self._material.render()
+                    self._material.render(s)
                     self.cache_object = self._material.surface
                     if self.cache_object_tx is not None:
                         sdl2.SDL_DestroyTexture(self.cache_object_tx)
                         self.cache_object_tx = None
                     self.cache_object_tx = sdl2.SDL_CreateTextureFromSurface(window.renderer, self.cache_object).contents
+                    sdl2.SDL_SetTextureScaleMode(self.cache_object_tx, 1)
             else:
                 if self.cache_object is not None:
                     self.cleanCache()
-                self._material.render()
+                self._material.render(s)
             self.object_render = True
 
-    def draw_object(self, window: Window, camera: Camera = None):
-        if window.__Window_Active__:
-            if self not in window.draw_objects:
+    def drawObject(self, window: Window | InternalWindow, camera: Camera = None):
+        if window.__WindowActive__:
+            if self not in window.drawnObjects:
                 render, cache_location, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
                 if render:
-                    window.draw_objects.append(self)
+                    window.drawnObjects.append(self)
                     if not self.object_render or self.always_render or window.render_all_objects:
-                        self.object_render = False
                         self.render(window)
-                    if not self._Mesh.vertices:
+                    if not self._mesh.vertices:
                         if self.cache_object is None:
                             window.drawSquare(cache_location, cache_size, self._rotation, self._border_radius[0], self._material.color)
                         else:
-                            ret = self._material.updade()
-                            if ret:
-                                self.cache_object = self._material.surface
-                                sdl2.SDL_UpdateTexture(self.cache_object_tx, None, self.cache_object.pixels, self.cache_object.pitch)
+                            self._material.update()
+                            self.cache_object = self._material.surface
+                            sdl2.SDL_UpdateTexture(self.cache_object_tx, None, self.cache_object.pixels, self.cache_object.pitch)
                             window.blit(self.cache_object_tx, cache_location, cache_size, self._rotation)
                         if self._border_size != 0:
                             window.drawEdgesSquare(cache_location, cache_size, self._rotation, self._border_size, self._border_radius[0], self._border_color)
@@ -78,7 +79,7 @@ class Object2D:
                             _color = self._material.surfaceColor
                         else:
                             _color = self._material.color
-                        window.drawPolygon(cache_location, self._scale, self._rotation, self._Mesh.vertices, _color)
+                        window.drawPolygon(cache_location, self._scale, self._rotation, self._mesh.vertices, _color)
 
     def hover(self, window, camera: Camera = None) -> bool:
         render, cache_localization, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
@@ -117,9 +118,9 @@ class Object2D:
 
     @size.setter
     def size(self, size):
-        #if self._size != size:
-        self._size = size
-        #    self.object_render = False
+        if self._size != size:
+            self._size = size
+            self.object_render = False
 
     @property
     def rotation(self):
@@ -190,6 +191,14 @@ class Object2D:
     def cursor(self, cursor: int):
         self._cursor = cursor
 
+    @property
+    def mesh(self):
+        return self._mesh
+
+    @mesh.setter
+    def mesh(self, mesh):
+        self._mesh = mesh
+
     def motion(self, axis, axis_type, speed: int | float | tuple):
         #Program.Temp.ForceRender = True
         if axis_type == 10:  # global
@@ -201,38 +210,41 @@ class Object2D:
             if self._motion_tick_time["y"].tick():
                 self.location = motion(self, axis, speed)
 
-    def collision(self, objects: object | list, variables: str | list = "") -> bool | list:
-        if not isinstance(objects, list):
+    def collision(self, window, objects: object | list = None, variables: str | list = None) -> bool | list:
+        if objects is None:
+            objects = window.drawnObjects
+        elif isinstance(objects, Object2D):
             objects = [objects]
 
-        def coll(s_objects, s_variables):
-            _variables = {}
-            if s_variables:
-                if isinstance(s_variables, str):
-                    if s_variables in s_objects.variables.keys():
-                        if s_objects.variables[s_variables]:
-                            _variables[s_variables] = s_objects.variables[s_variables]
-                        else:
-                            return False
-                    else:
-                        return False
-                elif isinstance(s_variables, list):
-                    for var in s_variables:
-                        if var in s_objects.variables.keys():
-                            if s_objects.variables[var]:
-                                _variables[var] = s_objects.variables[var]
-                    if not _variables:
-                        return False
-            if self._location[0] < s_objects._location[0] + s_objects._size[0] + 1 and self._location[0] + self._size[0] + 1 > s_objects._location[0] \
-                    and self._location[1] < s_objects._location[1] + s_objects._size[1] + 1 and self._location[1] + self._size[1] + 1 > s_objects._location[1]:
-                return [self, s_objects, _variables] if self._showMoreDetailsOfCollisions else True
+        def coll(_obj, _var):
+            _vars = {}
+            if _var and _var is not None and isinstance(_var, (str, list)):
+                if isinstance(_var, str):
+                    value = _obj.variables.get(_var)
+                    if value and value is not None:
+                        _vars[_var] = _obj.variables[_var]
+                elif isinstance(_var, list):
+                    for var in _var:
+                        value = _obj.variables.get(var)
+                        if value and value is not None:
+                            _vars[var] = _obj.variables[var]
+                if not _vars:
+                    return False
+
+            _edges_self = edges(calculate_square_vertices(self.location, self.size, self.rotation)) if not self.mesh.vertices else self.mesh.edges
+            _edges_obj = edges(calculate_square_vertices(_obj.location, _obj.size, _obj.rotation)) if not _obj.mesh.vertices else _obj.mesh.edges
+
+            for _num_edge_self in range(len(_edges_self)):
+                for _num_edge_obj in range(len(_edges_obj)):
+                    if line_intersection(_edges_self[_num_edge_self][0], _edges_self[_num_edge_self][1], _edges_obj[_num_edge_obj][0], _edges_obj[_num_edge_obj][1]):
+                        return [self, _obj, _vars] if self._showMoreDetailsOfCollisions else True
             return False
 
         rets = []
 
-        for ob in objects:
-            if isinstance(ob, Object2D) and not ob == self:
-                ret = coll(ob, variables)
+        for obj in objects:
+            if isinstance(obj, Object2D) and not obj == self:
+                ret = coll(obj, variables)
                 if ret:
                     rets.append(ret)
         if rets:

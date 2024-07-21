@@ -1,7 +1,6 @@
 # MGE 
 
-Version: 0.9.4  
-[other versions](https://github.com/lucas224112/MGE_Other_Versions)
+Version: 0.9.8  
 
 ## Installing
 ```
@@ -13,25 +12,24 @@ pip install MGE
 
 ## Example of use
 ```py
-import sys
 import MGE
 
 MGE.init()
 
 window = MGE.Window(resolution=(500, 500), flags=MGE.WindowFlag.Shown)
-window.limit_time = 120
+window.frameRateLimit = 60
 
 gif = MGE.Object2D([0, 0], 0, [500, 500])
-gif.material = MGE.Material(MGE.Texture(MGE.LoadGif("./image.gif")))
+gif.material = MGE.Material(MGE.Texture(MGE.LoadImage("./image.gif")))
 
 while True:
     MGE.update()
     window.update()
 
-    window.title = f"Gif-MGE | FPS:{window.fps}"
+    window.title = f"LibMGE OpenGif | FPS: {int(window.fps)}"
 
     if MGE.QuitEvent() or MGE.keyboard(MGE.KeyboardButton.F1):
-        sys.exit()
+        exit()
 
-    gif.draw_object(window)
+    gif.drawObject(window)
 ```

@@ -1,5 +1,6 @@
+from ..Log import *
 
-print("\033[91m" + "system incompatible with 'MGE._InputsEmulator'")
+LogCritical("system incompatible with 'MGE._InputsEmulator'", exit_code=0)
 
 def MousePress(button):
     pass

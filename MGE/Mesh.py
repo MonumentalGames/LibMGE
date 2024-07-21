@@ -1,4 +1,6 @@
 import math
+import os
+from .Log import LogError
 
 def line_intersection(start_1, end_1, start_2, end_2):
     # Calcula os deltas para as duas linhas
@@ -74,6 +76,19 @@ class Mesh2D:
     @property
     def edges(self):
         return [(self._vertices[num], self._vertices[num+1 if num+1 <= len(self._vertices)-1 else 0]) for num in range(len(self._vertices))]
+
+def LoadObj(path):
+    vertices = []
+    if os.path.exists(path):
+        with open(path) as obj:
+            r = obj.read()
+            for rr in r.split("\n"):
+                if len(rr) > 0 and rr[0] == "v":
+                    r2 = rr.split()
+                    vertices.append((int(float(r2[1]) * 100), int(float(r2[3] if len(r2) == 4 else r2[2]) * 100)))
+    if len(vertices) == 0:
+        LogError(f"{path}")
+    return Mesh2D(vertices)
 
 def CreateMeshPlane(size):
     return Mesh2D([(0, 0), (size[0], 0), (size[0], size[1]), (0, size[1])])
