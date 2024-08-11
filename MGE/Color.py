@@ -4,9 +4,9 @@ from .Log import LogError
 __all__ = ["Color", "Colors"]
 
 class Color:
-    def __init__(self, color):
+    def __init__(self, *color):
         self._r = self._g = self._b = self._a = 255
-        self.Color = color
+        self._SetColor(*color)
 
     def __repr__(self):
         return f"<%s.%s color=(%d, %d, %d, %d) at 0x%X>" % (
@@ -15,6 +15,24 @@ class Color:
             self._r, self._g, self._b, self._a,
             id(self)
         )
+
+    def _SetColor(self, *color):
+        color = color[0] if len(color) == 1 else color
+        if isinstance(color, (tuple, list)):
+            if all(isinstance(c, int) for c in color):
+                self.RGBA = color
+            elif all(isinstance(c, float) for c in color):
+                self.RGBA01 = color
+            else:
+                LogError(f"The value '{color}' is not recognized as a color")
+        elif isinstance(color, int):
+            self.Uint32 = color
+        elif isinstance(color, str):
+            self.Hex = color
+        elif isinstance(color, SDL_Color):
+            self.SDLColor = color
+        else:
+            LogError(f"The value '{color}' is not recognized as a color")
 
     @property
     def r(self):
@@ -57,7 +75,7 @@ class Color:
         if isinstance(color, (tuple, list)) and all(isinstance(c, int) for c in color):
             self.r, self.g, self.b = color[0], color[1], color[2]
         else:
-            LogError("RGB")
+            LogError(f"The value '{color}' is not recognized as a RGB color")
 
     @property
     def RGBA(self):
@@ -69,7 +87,7 @@ class Color:
             self.RGB = color[0], color[1], color[2]
             self.a = self._a if len(color) < 4 else color[3]
         else:
-            LogError("RGBA")
+            LogError(f"The value '{color}' is not recognized as a RGBA color")
 
     @property
     def RGB01(self):
@@ -80,7 +98,7 @@ class Color:
         if isinstance(color, (tuple, list)) and all(isinstance(c, float) for c in color):
             self.RGB = round(color[0] * 255), round(color[1] * 255), round(color[2] * 255)
         else:
-            LogError()
+            LogError(f"The value '{color}' is not recognized as a RGB01 color")
 
     @property
     def RGBA01(self):
@@ -91,7 +109,7 @@ class Color:
         if isinstance(color, (tuple, list)) and all(isinstance(c, float) for c in color):
             self.RGBA = round(color[0] * 255), round(color[1] * 255), round(color[2] * 255), round(color[3] * 255)
         else:
-            LogError()
+            LogError(f"The value '{color}' is not recognized as a RGBA01 color")
 
     @property
     def Uint32(self):
@@ -102,7 +120,7 @@ class Color:
         if isinstance(color, int):
             self.RGBA = (color >> 0) & 0xFF, (color >> 8) & 0xFF, (color >> 16) & 0xFF, (color >> 24) & 0xFF
         else:
-            LogError()
+            LogError(f"The value '{color}' is not recognized as a color")
 
     @property
     def Hex(self):
@@ -118,37 +136,23 @@ class Color:
     @Hex.setter
     def Hex(self, color):
         if isinstance(color, str):
-            color = color.lstrip("#")
-            color = "".join([char * 2 for char in color]) if len(color) == 3 or len(color) == 4 else color
-            color = color + "FF" if len(color) == 6 else color
+            _color = color.lstrip("#")
+            _color = "".join([char * 2 for char in _color]) if len(_color) == 3 or len(_color) == 4 else _color
+            _color = _color + "FF" if len(_color) == 6 else _color
             try:
-                self.RGBA = int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), int(color[6:8], 16)
+                self.RGBA = int(_color[0:2], 16), int(_color[2:4], 16), int(_color[4:6], 16), int(_color[6:8], 16)
             except ValueError:
-                LogError("ValueError")
+                LogError(f"The value '{color}' is not recognized as a hexadecimal color")
         else:
-            LogError()
+            LogError(f"The value '{color}' is not recognized as a hexadecimal color")
 
     @property
     def Color(self):
         return self.RGBA
 
     @Color.setter
-    def Color(self, color):
-        if isinstance(color, (tuple, list)):
-            if all(isinstance(c, int) for c in color):
-                self.RGBA = color
-            elif all(isinstance(c, float) for c in color):
-                self.RGBA01 = color
-            else:
-                LogError()
-        elif isinstance(color, int):
-            self.Uint32 = color
-        elif isinstance(color, str):
-            self.Hex = color
-        elif isinstance(color, SDL_Color):
-            self.SDLColor = color
-        else:
-            LogError()
+    def Color(self, *color):
+        self._SetColor(*color)
 
     @property
     def SDLColor(self) -> SDL_Color:
@@ -159,7 +163,7 @@ class Color:
         if isinstance(color, SDL_Color):
             self.RGBA = color.r, color.g, color.b, color.a
         else:
-            LogError()
+            LogError(f"The value '{color}' is not recognized as a color SDL_Color")
 
 Colors = {"StandardColor": Color((120, 120, 255)), "White": Color((255, 255, 255)), "Black": Color((0, 0, 0))}
 Themes = {"Standard": {}}
