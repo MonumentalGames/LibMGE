@@ -1,6 +1,6 @@
 from .Camera import Camera
 from .Vector import motion
-from .Mouse import GetMousePosition
+from .Mouse import object2dSimpleHover
 from .Material import Material, DefaultMaterial
 from .Constants import Pivot2D, Meshes2D
 from .Mesh import *
@@ -82,11 +82,10 @@ class Object2D:
                         window.drawPolygon(cache_location, self._scale, self._rotation, self._mesh.vertices, _color)
 
     def hover(self, window, camera: Camera = None) -> bool:
-        render, cache_localization, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
-        mouse_lok = GetMousePosition()
-        if render and (cache_localization[0] < mouse_lok[0] < cache_localization[0] + cache_size[0] and cache_localization[1] < mouse_lok[1] < cache_localization[1] + cache_size[1]):
+        if object2dSimpleHover(window, camera, self._location, self._size, self._scale, self._pivot):
             _temp.MouseCursor = self._cursor
             return True
+        return False
 
     def cleanCache(self):
         self.cache_object = None

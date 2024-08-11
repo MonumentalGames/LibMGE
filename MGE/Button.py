@@ -8,7 +8,7 @@ from .Material import Material, DefaultMaterial
 from .Color import Color
 from .Time import Time, fps_to_time
 from .Constants import Pivot2D
-from .Mouse import MouseButton, GetMousePosition
+from .Mouse import MouseButton, simpleHover, object2dSimpleHover
 from .Text import _ObjectText, _DefaultFont
 
 __all__ = ["Button", "ButtonText", "ButtonImage", "ButtonIcon"]
@@ -16,13 +16,6 @@ __all__ = ["Button", "ButtonText", "ButtonImage", "ButtonIcon"]
 #location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), material=DefaultMaterial, mesh=Meshes2D.Plane
 #location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), material=DefaultMaterial, material_hover=DefaultMaterial
 #location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), material=DefaultMaterial
-
-def simpleHover(window, location, size):
-    location = (location[0] + window.location[0], location[1] + window.location[1]) if isinstance(window, InternalWindow) else location
-    _position = GetMousePosition()
-    if window.hover() if isinstance(window, InternalWindow) else True:
-        return True if location[0] < _position[0] < location[0] + size[0] and location[1] < _position[1] < location[1] + size[1] else False
-    return False
 
 class _button:
     def __init__(self, location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1)):
@@ -34,9 +27,7 @@ class _button:
         self._cursor = 11
 
     def hover(self, window: Window | InternalWindow, camera: Camera):
-        _render, cache_location, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
-        if not _render: return False
-        return simpleHover(window, cache_location, cache_size)
+        return object2dSimpleHover(window, camera, self._location, self._size, self._scale, self._pivot)
 
     def button(self, button: int, window, camera: Camera, multiple_click: bool = False) -> bool:
         self.button_active = True

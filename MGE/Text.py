@@ -8,7 +8,7 @@ from .Keyboard import keyboard, KeyboardText, KeyboardClick
 from .Time import Time, fps_to_time
 from .Platform import Platform
 from .Color import Color
-from .Mouse import GetMousePosition, MouseButton, MouseScroll
+from .Mouse import GetMousePosition, MouseButton, MouseScroll, simpleHover, object2dSimpleHover
 from .Window import Window
 from .InternalWindow import InternalWindow
 from ._sdl import sdl2, sdlttf, sdlgfx
@@ -22,19 +22,6 @@ else:
 
 __all__ = ["ObjectText", "ObjectInputTextLine", "ObjectInputTextBox",
            "GetClipboardText", "SetClipboardText"]
-
-def simpleHover(window, location, size):
-    location = (location[0] + window.location[0], location[1] + window.location[1]) if isinstance(window, InternalWindow) else location
-    _position = GetMousePosition()
-    if window.hover() if isinstance(window, InternalWindow) else True:
-        return True if location[0] < _position[0] < location[0] + size[0] and location[1] < _position[1] < location[1] + size[1] else False
-    return False
-
-def object2dSimpleHover(window, camera, location, size, scale, pivot):
-    _render, cache_location, cache_size = _calculate_object2d(location, size, 0, scale, window, camera, pivot)
-    if not _render:
-        return False
-    return simpleHover(window, cache_location, cache_size)
 
 def GetClipboardText() -> str: return sdl2.SDL_GetClipboardText()
 def SetClipboardText(text: str): sdl2.SDL_SetClipboardText(text)

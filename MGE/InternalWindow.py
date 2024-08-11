@@ -9,7 +9,7 @@ from .Image import Image
 from .Texture import _get_sdl2_texture_size
 from .Camera import Camera
 from .Mesh import rotate_point
-from .Mouse import GetMousePosition
+from .Mouse import GetMousePosition, object2dSimpleHover
 from .Constants import Pivot2D, ImageFormat
 
 __all__ = ["InternalWindow"]
@@ -17,6 +17,7 @@ __all__ = ["InternalWindow"]
 class InternalWindow:
     def __init__(self, location=(0, 0), rotation: int = 0, size=(1280, 720), scale=(1, 1), resolution=(1280, 720), camera=Camera()):
         self.__WindowActive__ = True
+        self.__WindowId__ = -1
 
         self._size = list(size)
         self._location = list(location)
@@ -113,12 +114,11 @@ class InternalWindow:
 
                     window.blit(self.cache_object, cache_location, cache_size, self._rotation)
 
-    def hover(self) -> bool:
-        cache_location, cache_size = self._location, self._resolution
-        mouse_lok = GetMousePosition()
-        if cache_location[0] < mouse_lok[0] < cache_location[0] + cache_size[0] and cache_location[1] < mouse_lok[1] < cache_location[1] + cache_size[1]:
+    def hover(self, window, camera: Camera = None) -> bool:
+        if object2dSimpleHover(window, camera, self._location, self._size, self._scale, self._pivot):
             #_temp.MouseCursor = self._cursor
             return True
+        return False
 
     def recreate(self, location=(0, 0), rotation: int = 0, size=(1280, 720), scale=(1, 1), resolution=(1280, 720), camera=Camera()):
         self.close()

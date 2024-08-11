@@ -2,10 +2,10 @@ import ctypes
 
 from ._sdl import sdl2
 from .Monitors import Monitors
-from .Common import _temp, AllEvents
+from .Common import _temp, AllEvents, _calculate_object2d
 
 __all__ = ["GetMousePosition", "GetMouseGlobalPosition", "SetMousePosition", "SetMouseGlobalPosition",
-           "SetMouseVisibility", "SetMouseCursor",
+           "SetMouseVisibility", "SetMouseCursor", "simpleHover", "object2dSimpleHover",
            "MouseMotion", "MouseGlobalMotion", "MouseButton", "MouseScroll", "MouseState", "MouseMovement"]
 
 def MouseState(button):
@@ -98,3 +98,12 @@ def MouseScroll():
         if event.type == sdl2.SDL_MOUSEWHEEL:
             return round(event.wheel.preciseY)
     return 0
+
+def simpleHover(window, location, size):
+    location = (location[0] + window.location[0], location[1] + window.location[1]) if window.__WindowId__ < 0 else location
+    _position = GetMousePosition()
+    return location[0] < _position[0] < location[0] + size[0] and location[1] < _position[1] < location[1] + size[1]
+
+def object2dSimpleHover(window, camera, location, size, scale, pivot):
+    _render, cache_location, cache_size = _calculate_object2d(location, size, 0, scale, window, camera, pivot)
+    return _render and simpleHover(window, cache_location, cache_size)
