@@ -4,8 +4,7 @@ from .Audio import Music, Sound
 from .Platform import Platform
 from .Constants import *
 from .Camera import Camera
-from .Window import Window, CreateGlWindow
-from .InternalWindow import InternalWindow
+from .Window import Window, CreateGlWindow, InternalWindow
 from .Monitors import Monitors, Monitor
 from .Text import ObjectText, ObjectInputTextLine, ObjectInputPassLine, ObjectInputTextBox
 from .Object2D import Object2D

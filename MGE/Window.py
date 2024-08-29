@@ -1,7 +1,6 @@
 from ctypes import c_int, c_uint8, byref, sizeof, windll
-import ctypes
 
-from .Common import AllEvents, WindowEvents
+from .Common import AllEvents, WindowEvents, _temp, _calculate_object2d
 from .Keyboard import KeyboardState
 from .Time import Time, fps_to_time, get_fps_from_time
 from ._sdl import sdl2, sdlgfx
@@ -11,68 +10,39 @@ from .Camera import Camera
 from .Image import Image, Icon, DefaultIcon, image_to_icon
 from .Platform import Platform
 from .Monitors import Monitors
-from .Constants import *
+from .Constants import All, WindowFlag, ImageFormat, Pivot2D
 from .Mesh import rotate_point
-from .Log import *
+from .Log import LogError, LogCritical
+from .Mouse import object2dSimpleHover
 
-__all__ = ["Window", "CreateGlWindow"]
+__all__ = ["Window", "CreateGlWindow", "InternalWindow"]
 
-class Window:
-    def __init__(self, title="MGE", icon: Icon = DefaultIcon, resolution=(1280, 720), location=(300, 300), logical_resolution=(0, 0), shape=None, camera=Camera(), render_driver=All, flags=WindowFlag.Shown | WindowFlag.Resizable):
+class _Window:
+    def __init__(self):
         self.__WindowActive__ = True
 
-        self._title = title
-        self._location = location
-        self._resolution = resolution
-        self._logical_resolution = logical_resolution
+        self._resolution = None
 
-        self.camera = camera
-
-        self._shape = shape
-        if self._shape is None:
-            self.window = sdl2.SDL_CreateWindow(self._title, self._location[0], self._location[1], self._resolution[0], self._resolution[1], flags)
-        else:
-            self.window = sdl2.SDL_CreateShapedWindow(self._title.encode(), self._location[0], self._location[1], self._resolution[0], self._resolution[1], flags)
-            sdl2.SDL_SetWindowShape(self.window, self._shape, sdl2.SDL_WindowShapeMode())
+        self.window = None
         self.context = None
         self.renderer = None
-        if (flags >> 1) & 1:
-            self.context = sdl2.SDL_GL_CreateContext(self.window)
-        else:
-            self.renderer = sdl2.SDL_CreateRenderer(self.window, render_driver, 0x00000002 | 0x00000008 if Platform.drivers[render_driver].hardware or render_driver == -1 else 0x00000001 | 0x00000008)
-        self.__WindowId__ = sdl2.SDL_GetWindowID(self.window)
-        _wmInfo = sdl2.SDL_SysWMinfo()
-        sdl2.SDL_GetWindowWMInfo(self.window, _wmInfo)
-        self._hwnd = _wmInfo.info.win.window
-        del _wmInfo
-        self.logicalResolution = self._logical_resolution
-        self.icon = self._icon = icon
+        self.__WindowId__ = -1
 
         self._variables = {}
 
         self._frameRateLimit = Monitors[0].frame_rate
-        self._cache = {"clear_screen": True, "fill": True, "times": {"standard_time": Time(fps_to_time(self._frameRateLimit)), "title_time": Time(0.5), "optimized_time": {"time_start": Time(0.5), "time_loop": Time(fps_to_time(2))}}}
+        self._cache = {"clear_screen": True, "fill": True, "times": {"standard_time": Time(fps_to_time(self._frameRateLimit)), "title_time": Time(0.5), "optimized_time": {"time_start": Time(0.5), "time_loop": Time(fps_to_time(2))}}, "window_tx": None}
         self.frameRate = 0
 
         self.drawnObjects = []
         self.render_all_objects = True
 
-    def __repr__(self):
-        return f"<%s.%s resolution=%dx%d at 0x%X>" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self._resolution[0],
-            self._resolution[1],
-            id(self)
-        )
-
-    @property
-    def hwnd(self):
-        return self._hwnd
-
     @property
     def flags(self):
-        return sdl2.SDL_GetWindowFlags(self.window)
+        if not self.__WindowId__ < 0:
+            return sdl2.SDL_GetWindowFlags(self.window)
+        else:
+            return 0
 
     @property
     def frameRateLimit(self):
@@ -91,62 +61,20 @@ class Window:
     def variables(self, variables):
         self._variables = variables
 
-    def update(self, still_frame_optimization: bool = False):
-        if self.__WindowActive__:
-            if still_frame_optimization:
-                if AllEvents() or any(KeyboardState()):
-                    self._cache["times"]["optimized_time"]["time_start"].restart()
-                else:
-                    if self._cache["times"]["optimized_time"]["time_start"].tick():
-                        if not self._cache["times"]["optimized_time"]["time_loop"].tick(True):
-                            return False
-            if self._cache["times"]["standard_time"].tick(True):
-                self.frameRate = get_fps_from_time(self._cache["times"]["standard_time"])
-
-                self._resolution = list(sdl2.SDL_GetWindowSize(self.window))
-
-                if WindowEvents(self.__WindowId__, 14):
-                    self.close()
-                    return
-
-                self.drawnObjects.clear()
-                self._cache["clear_screen"] = True
-                self._cache["fill"] = True
-
-                if (self.flags >> 1) & 1:
-                    sdl2.SDL_GL_SwapWindow(self.window)
-                else:
-                    sdl2.SDL_RenderPresent(self.renderer)
-                return True
-        return False
-
-    def recreate(self, title="MGE", icon: Icon = DefaultIcon, resolution=(1280, 720), location=(300, 300), logical_resolution=(0, 0), shape=None, camera=Camera(), flags=WindowFlag.Shown | WindowFlag.Resizable):
-        self.close()
-        self.__init__(title=title, icon=icon, resolution=resolution, location=location, logical_resolution=logical_resolution, shape=shape, camera=camera, flags=flags)
-
-    def restore(self):
-        sdl2.SDL_RestoreWindow(self.window)
-
-    def show(self):
-        sdl2.SDL_ShowWindow(self.window)
-
-    def hide(self):
-        sdl2.SDL_HideWindow(self.window)
-
-    def maximize(self):
-        sdl2.SDL_MaximizeWindow(self.window)
-
-    def minimize(self):
-        sdl2.SDL_MinimizeWindow(self.window)
-
     def close(self):
         self.clear(True)
         if self.window is not None:
-            sdl2.SDL_DestroyWindow(self.window)
+            if self.__WindowId__ < 0:
+                sdl2.SDL_FreeSurface(self.window)
+            else:
+                sdl2.SDL_DestroyWindow(self.window)
         if self.renderer is not None:
             sdl2.SDL_DestroyRenderer(self.renderer)
         if self.context is not None:
             sdl2.SDL_GL_DeleteContext(self.context)
+        if self.__WindowId__ < 0 and self._cache["window_tx"] is not None:
+            sdl2.SDL_DestroyTexture(self._cache["window_tx"])
+            self._cache["window_tx"] = None
         self.window = self.renderer = None
         self.__WindowActive__ = False
 
@@ -162,9 +90,12 @@ class Window:
 
     def getImage(self):
         _Image = Image()
-        _Image.images.append(sdl2.SDL_CreateRGBSurface(0, self._resolution[0], self._resolution[1], 32, 0, 0, 0, 0).contents)
+        if self.__WindowId__ < 0:
+            _Image.images.append(self.window)
+        else:
+            _Image.images.append(sdl2.SDL_CreateRGBSurface(0, self._resolution[0], self._resolution[1], 32, 0, 0, 0, 0).contents)
+            sdl2.SDL_RenderReadPixels(self.renderer, None, sdl2.SDL_PIXELFORMAT_ARGB8888, _Image.images[0].pixels, _Image.images[0].pitch)
         _Image.delays.append(0)
-        sdl2.SDL_RenderReadPixels(self.renderer, None, sdl2.SDL_PIXELFORMAT_ARGB8888, _Image.images[0].pixels, _Image.images[0].pitch)
         _Image._size = self._resolution
         _Image._format = ImageFormat.ARGB
         return _Image
@@ -307,7 +238,96 @@ class Window:
             ret = sdl2.SDL_SetRenderDrawColor(self.renderer, *color)
             if ret < 0:
                 LogError("error when changing rendering color")
-                #sys.exit("Window_error")
+
+class Window(_Window):
+    def __init__(self, title="MGE", icon: Icon = DefaultIcon, resolution=(1280, 720), location=(300, 300), logical_resolution=(0, 0), shape=None, camera=Camera(), render_driver=All, flags=WindowFlag.Shown | WindowFlag.Resizable):
+        super().__init__()
+
+        self._title = title
+        self._location = location
+        self._resolution = resolution
+        self._logical_resolution = logical_resolution
+
+        self.camera = camera
+
+        self._shape = shape
+        if self._shape is None:
+            self.window = sdl2.SDL_CreateWindow(self._title, self._location[0], self._location[1], self._resolution[0], self._resolution[1], flags)
+        else:
+            self.window = sdl2.SDL_CreateShapedWindow(self._title.encode(), self._location[0], self._location[1], self._resolution[0], self._resolution[1], flags)
+            sdl2.SDL_SetWindowShape(self.window, self._shape, sdl2.SDL_WindowShapeMode())
+        if (flags >> 1) & 1:
+            self.context = sdl2.SDL_GL_CreateContext(self.window)
+        else:
+            self.renderer = sdl2.SDL_CreateRenderer(self.window, render_driver, 0x00000002 | 0x00000008 if Platform.drivers[render_driver].hardware or render_driver == -1 else 0x00000001 | 0x00000008)
+        self.__WindowId__ = sdl2.SDL_GetWindowID(self.window)
+        _wmInfo = sdl2.SDL_SysWMinfo()
+        sdl2.SDL_GetWindowWMInfo(self.window, _wmInfo)
+        self._hwnd = _wmInfo.info.win.window
+        del _wmInfo
+        self.logicalResolution = self._logical_resolution
+        self.icon = self._icon = icon
+
+    def __repr__(self):
+        return f"<%s.%s resolution=%dx%d at 0x%X>" % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self._resolution[0],
+            self._resolution[1],
+            id(self)
+        )
+
+    @property
+    def hwnd(self):
+        return self._hwnd
+
+    def update(self, still_frame_optimization: bool = False):
+        if self.__WindowActive__:
+            if still_frame_optimization:
+                if AllEvents() or any(KeyboardState()):
+                    self._cache["times"]["optimized_time"]["time_start"].restart()
+                else:
+                    if self._cache["times"]["optimized_time"]["time_start"].tick():
+                        if not self._cache["times"]["optimized_time"]["time_loop"].tick(True):
+                            return False
+            if self._cache["times"]["standard_time"].tick(True):
+                self.frameRate = get_fps_from_time(self._cache["times"]["standard_time"])
+
+                self._resolution = list(sdl2.SDL_GetWindowSize(self.window))
+
+                if WindowEvents(self.__WindowId__, 14):
+                    self.close()
+                    return
+
+                self.drawnObjects.clear()
+                self._cache["clear_screen"] = True
+                self._cache["fill"] = True
+
+                if (self.flags >> 1) & 1:
+                    sdl2.SDL_GL_SwapWindow(self.window)
+                else:
+                    sdl2.SDL_RenderPresent(self.renderer)
+                return True
+        return False
+
+    def recreate(self, title="MGE", icon: Icon = DefaultIcon, resolution=(1280, 720), location=(300, 300), logical_resolution=(0, 0), shape=None, camera=Camera(), flags=WindowFlag.Shown | WindowFlag.Resizable):
+        self.close()
+        self.__init__(title=title, icon=icon, resolution=resolution, location=location, logical_resolution=logical_resolution, shape=shape, camera=camera, flags=flags)
+
+    def restore(self):
+        sdl2.SDL_RestoreWindow(self.window)
+
+    def show(self):
+        sdl2.SDL_ShowWindow(self.window)
+
+    def hide(self):
+        sdl2.SDL_HideWindow(self.window)
+
+    def maximize(self):
+        sdl2.SDL_MaximizeWindow(self.window)
+
+    def minimize(self):
+        sdl2.SDL_MinimizeWindow(self.window)
 
     @property
     def title(self):
@@ -464,3 +484,160 @@ def CreateGlWindow(title="MGE", icon: Icon = DefaultIcon, resolution=(1280, 720)
         sdl2.SDL_GL_SetAttribute(sdl2.SDL_GL_MULTISAMPLESAMPLES, msaa)
     _window = Window(title=title, icon=icon, resolution=resolution, location=location, shape=shape, flags=flags | WindowFlag.Opengl)
     return _window
+
+class InternalWindow(_Window):
+    def __init__(self, location=(0, 0), rotation: int = 0, size=(1280, 720), scale=(1, 1), resolution=(1280, 720), camera=Camera()):
+        super().__init__()
+
+        self._size = list(size)
+        self._location = list(location)
+        self._rotation = rotation
+        self._scale = scale
+        self._resolution = resolution
+        self._pivot = Pivot2D.TopLeftSide
+        self._border_size = 0
+        self._border_color = Color((100, 100, 255))
+        self._border_radius = [0, 0, 0, 0]
+        self._cursor = 11
+
+        self.camera = camera
+
+        self.window = sdl2.SDL_CreateRGBSurface(0, self._resolution[0], self._resolution[1], 32, 0, 0, 0, 0).contents
+        self.renderer = sdl2.SDL_CreateSoftwareRenderer(self.window)
+
+        self._clear_color = (0, 0, 0, 255)
+
+        self._frameRateLimit = 60
+
+        self.object_render = False
+
+    def __repr__(self):
+        return f"<%s.%s resolution=%dx%d at 0x%X>" % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self._resolution[0],
+            self._resolution[1],
+            id(self)
+        )
+
+    def render(self, window=None):
+        if self._cache["window_tx"] is not None:
+            sdl2.SDL_DestroyTexture(self._cache["window_tx"])
+            self._cache["window_tx"] = None
+        self._cache["window_tx"] = sdl2.SDL_CreateTextureFromSurface(window.renderer if window is not None else sdl2.SDL_GetRenderer(sdl2.SDL_GetWindowFromID(1)), self.window).contents
+        self.object_render = True
+
+    def drawObject(self, window, camera: Camera = None, still_frame_optimization: bool = False):
+        if window.__WindowActive__ and self.__WindowActive__:
+            if self not in window.drawnObjects:
+                window.drawnObjects.append(self)
+                render, cache_location, cache_size = _calculate_object2d(self._location, self._size, self._rotation, self._scale, window, camera, self._pivot)
+                if render:
+                    if len(self.drawnObjects) == 0:
+                        window.drawSquare(cache_location, cache_size, self._rotation, 0, Color(self._clear_color))
+                        self.frameRate = self._frameRateLimit
+                        return
+
+                    if still_frame_optimization:
+                        if AllEvents() or any(_temp.KeyboardState):
+                            self._cache["times"]["optimized_time"]["time_start"].restart()
+                        else:
+                            if self._cache["times"]["optimized_time"]["time_start"].tick():
+                                if not self._cache["times"]["optimized_time"]["time_loop"].tick(True):
+                                    window.blit(self._cache["window_tx"], cache_location, cache_size, 0)
+                                    return
+                    if self._cache["times"]["standard_time"].tick(True):
+                        self.frameRate = get_fps_from_time(self._cache["times"]["standard_time"])
+
+                        self.drawnObjects.clear()
+                        self._cache["clear_screen"] = True
+                        self._cache["fill"] = True
+
+                        if not self.object_render:
+                            self.render()
+                        else:
+                            sdl2.SDL_UpdateTexture(self._cache["window_tx"], None, self.window.pixels, self.window.pitch)
+
+                    window.blit(self._cache["window_tx"], cache_location, cache_size, self._rotation)
+
+    def hover(self, window, camera: Camera = None) -> bool:
+        if object2dSimpleHover(window, camera, self._location, self._size, self._scale, self._pivot):
+            #_temp.MouseCursor = self._cursor
+            return True
+        return False
+
+    def recreate(self, location=(0, 0), rotation: int = 0, size=(1280, 720), scale=(1, 1), resolution=(1280, 720), camera=Camera()):
+        self.close()
+        self.__init__(location=location, rotation=rotation, size=size, scale=scale, resolution=resolution, camera=camera)
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, location):
+        self._location = location[0], location[1]
+
+    @property
+    def size(self) -> list[int, int]:
+        # return calculate_size(self.size, Program.screen.get_size())
+        return self._size
+
+    @size.setter
+    def size(self, size):
+        self._size = size
+
+    @property
+    def rotation(self):
+        return self._rotation
+
+    @rotation.setter
+    def rotation(self, rotation: int | float):
+        if self._rotation != rotation:
+            self._rotation = round(rotation, 4)
+            self._rotation %= 360
+
+    @property
+    def scale(self):
+        return self._scale
+
+    @scale.setter
+    def scale(self, scale):
+        self._scale = scale
+
+    @property
+    def pivot(self):
+        return self._pivot
+
+    @pivot.setter
+    def pivot(self, pivot):
+        self._pivot = pivot
+
+    @property
+    def resolution(self) -> tuple:
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, resolution):
+        if self._resolution != resolution:
+            self._resolution = resolution
+            if self.window is not None:
+                sdl2.SDL_FreeSurface(self.window)
+            if self.renderer is not None:
+                sdl2.SDL_DestroyRenderer(self.renderer)
+            if self._cache["window_tx"] is not None:
+                sdl2.SDL_DestroyTexture(self._cache["window_tx"])
+            self.window = self.renderer = self._cache["window_tx"] = None
+
+            self.window = sdl2.SDL_CreateRGBSurface(0, self._resolution[0], self._resolution[1], 32, 0, 0, 0, 0)
+            self.renderer = sdl2.SDL_CreateSoftwareRenderer(self.window)
+
+            self.object_render = False
+
+    @property
+    def logicalResolution(self) -> tuple:
+        return self._resolution
+
+    @logicalResolution.setter
+    def logicalResolution(self, resolution):
+        self._resolution = resolution
