@@ -1,13 +1,14 @@
 from numpy import frombuffer, uint8, mean
 from ctypes import c_uint8
 from .Texture import Texture
-from .Color import Color, Colors
+from .Color import Color
+from .Constants import Colors
 from ._sdl import sdl2
 
 __all__ = ["Material", "DefaultMaterial", "ButtonDefaultMaterials"]
 
 class Material:
-    def __init__(self, texture: Texture | tuple = (), color: Color = Colors["StandardColor"], alpha: int = 255):
+    def __init__(self, texture: Texture | tuple = (), color: Color = Colors.StandardColor, alpha: int = 255):
         self._color = color
 
         self._alpha = alpha

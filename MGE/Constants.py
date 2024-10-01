@@ -1,9 +1,11 @@
 from .Mesh import Mesh2D
+from .Color import Color
 from ._sdl.sdl2 import SDL_PIXELFORMAT_RGB24, SDL_PIXELFORMAT_ARGB4444, SDL_PIXELFORMAT_RGBA8888, SDL_PIXELFORMAT_ARGB8888
 
 __all__ = ["WindowFlag", "WindowEvent", "RenderDriver", "ImageFormat",
            "ControllerType", "ControllerButton",
            "ConstMouseButton", "KeyboardButton",
+           "Colors",
            "Vector", "Pivot2D", "Meshes2D", "All"]
 
 All = -1
@@ -190,6 +192,101 @@ class KeyboardButton:
     LeftAlt = 226
     RightAlt = 230
     Alt = (LeftAlt, RightAlt)
+
+class Colors:
+    StandardColor = Color(120, 120, 255)
+
+    # Primary colors
+    Red = Color(255, 0, 0)
+    Green = Color(0, 255, 0)
+    Blue = Color(0, 0, 255)
+
+    # Secondary colors
+    Yellow = Color(255, 255, 0)
+    Cyan = Color(0, 255, 255)
+    Magenta = Color(255, 0, 255)
+
+    # Shades of black and white
+    Black = Color(0, 0, 0)
+    White = Color(255, 255, 255)
+    Gray = Color(128, 128, 128)
+    DarkGray = Color(64, 64, 64)
+    LightGray = Color(192, 192, 192)
+
+    # Pastel colors
+    PastelRed = Color(255, 182, 193)
+    PastelGreen = Color(152, 251, 152)
+    PastelBlue = Color(173, 216, 230)
+    PastelYellow = Color(255, 255, 204)
+    PastelPurple = Color(216, 191, 216)
+    PastelPink = Color(255, 182, 193)
+
+    # Bright colors
+    NeonGreen = Color(57, 255, 20)
+    NeonBlue = Color(77, 77, 255)
+    NeonPink = Color(255, 20, 147)
+    NeonYellow = Color(255, 255, 0)
+    NeonOrange = Color(255, 165, 0)
+
+    # Neutral colors
+    Beige = Color(245, 245, 220)
+    Ivory = Color(255, 255, 240)
+    Tan = Color(210, 180, 140)
+    Khaki = Color(240, 230, 140)
+    Lavender = Color(230, 230, 250)
+    Mint = Color(189, 252, 201)
+    SlateGray = Color(112, 128, 144)
+    LightSlateGray = Color(119, 136, 153)
+
+    # Warm colors
+    Orange = Color(255, 165, 0)
+    DarkOrange = Color(255, 140, 0)
+    Coral = Color(255, 127, 80)
+    Tomato = Color(255, 99, 71)
+    Salmon = Color(250, 128, 114)
+    Firebrick = Color(178, 34, 34)
+    Brown = Color(165, 42, 42)
+    Maroon = Color(128, 0, 0)
+
+    # Cold colors
+    Navy = Color(0, 0, 128)
+    Teal = Color(0, 128, 128)
+    Turquoise = Color(64, 224, 208)
+    Aqua = Color(0, 255, 255)
+    SkyBlue = Color(135, 206, 235)
+    RoyalBlue = Color(65, 105, 225)
+    SteelBlue = Color(70, 130, 180)
+    MidnightBlue = Color(25, 25, 112)
+
+    # Metallic colors
+    Gold = Color(255, 215, 0)
+    Silver = Color(192, 192, 192)
+    Bronze = Color(205, 127, 50)
+
+    # Natural colors
+    ForestGreen = Color(34, 139, 34)
+    LimeGreen = Color(50, 205, 50)
+    Olive = Color(128, 128, 0)
+    DarkOliveGreen = Color(85, 107, 47)
+    SeaGreen = Color(46, 139, 87)
+
+    # Skin colors
+    Peach = Color(255, 218, 185)
+    Bisque = Color(255, 228, 196)
+    Wheat = Color(245, 222, 179)
+    RosyBrown = Color(188, 143, 143)
+
+    # other colors
+    Indigo = Color(75, 0, 130)
+    Violet = Color(238, 130, 238)
+    Plum = Color(221, 160, 221)
+    Crimson = Color(220, 20, 60)
+    Fuchsia = Color(255, 0, 255)
+    Chartreuse = Color(127, 255, 0)
+    Periwinkle = Color(204, 204, 255)
+
+#class Themes:
+#    Standard = {}
 
 class Vector:
     X = 1

@@ -1,7 +1,7 @@
 from ._sdl.sdl2 import SDL_Color
 from .Log import LogError
 
-__all__ = ["Color", "Colors"]
+__all__ = ["Color"]
 
 class Color:
     def __init__(self, *color):
@@ -164,6 +164,3 @@ class Color:
             self.RGBA = color.r, color.g, color.b, color.a
         else:
             LogError(f"The value '{color}' is not recognized as a color SDL_Color")
-
-Colors = {"StandardColor": Color((120, 120, 255)), "White": Color((255, 255, 255)), "Black": Color((0, 0, 0))}
-Themes = {"Standard": {}}
