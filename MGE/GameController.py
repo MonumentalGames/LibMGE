@@ -1,4 +1,6 @@
 import os
+from .Color import Color
+from .Constants import Colors
 from ._sdl import sdl2
 
 __all__ = ["Controller",
@@ -8,7 +10,7 @@ class Controller:
     def __init__(self, index=0):
         self._controller = sdl2.SDL_GameController()
         self._name = ""
-        self._led_color = [0, 0, 255]
+        self._led_color = Colors.Blue
         self._index = index
         self.buttons_cache = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
         if sdl2.SDL_NumJoysticks() >= index + 1:
@@ -17,17 +19,21 @@ class Controller:
             sdl2.SDL_GameControllerSetPlayerIndex(self._controller, 3)
             sdl2.SDL_GameControllerSetLED(self._controller, 0, 0, 255)
 
-    def Reload(self, index=-1):
+    def reload(self, index=-1):
         if sdl2.SDL_NumJoysticks() >= self._index + 1 if index == -1 else 1:
             self._controller = sdl2.SDL_GameControllerOpen(self._index if index == -1 or not type(index) == int else index)
             self._name = sdl2.SDL_GameControllerName(self._controller).decode()
             self._index = self._index if index == -1 or not type(index) == int else index
 
-    def led(self, color: tuple | bool):
+    def led(self, color: Color | bool):
         if isinstance(color, bool):
-            color = self._led_color if color else (0, 0, 0)
-        self._led_color = list(color) if not tuple(color) == (0, 0, 0) else self._led_color
-        sdl2.SDL_GameControllerSetLED(self._controller, color[0], color[1], color[2])
+            if not color:
+                sdl2.SDL_GameControllerSetLED(self._controller, 0, 0, 0)
+                return
+            color = self._led_color
+        if isinstance(color, Color) and not color.RGB == (0, 0, 0):
+            self._led_color = color
+        sdl2.SDL_GameControllerSetLED(self._controller, *color.RGB)
 
     def button(self, button=0, multiple_click=False):
         buttons = []
@@ -44,7 +50,7 @@ class Controller:
                     self.buttons_cache[num] = False
         return buttons if buttons else False
 
-    def analog_stick(self, axis):
+    def analogStick(self, axis):
         xy = [0, 0]
         if axis == -1:
             xy = [0, 0, 0, 0]
