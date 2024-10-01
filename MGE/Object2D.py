@@ -1,13 +1,12 @@
 from .Camera import Camera
-from .Vector import motion
+from .Vector import object2dSimpleMotion
 from .Mouse import object2dSimpleHover
 from .Material import Material, DefaultMaterial
 from .Constants import Pivot2D, Meshes2D
-from .Mesh import *
+from .Mesh import edges, Mesh2D, calculate_square_vertices, line_intersection
 from .Common import _temp, _calculate_object2d, _calculate_size
 from .Time import Time, fps_to_time
-from .Window import Window
-from .InternalWindow import InternalWindow
+from .Window import Window, InternalWindow
 from .Color import Color
 from ._sdl import sdl2
 
@@ -165,16 +164,16 @@ class Object2D:
     def borderColor(self, border_color: Color):
         self._border_color = border_color
 
-    @property
-    def borderRadius(self):
-        return
+    #@property
+    #def borderRadius(self):
+    #    return
 
-    @borderRadius.setter
-    def borderRadius(self, radius: int | tuple[int, int, int, int]):
-        if type(radius) == int:
-            self._border_radius = [radius, radius, radius, radius]
-        elif type(radius) == tuple:
-            self._border_radius = [radius[0], radius[1], radius[2], radius[3]]
+    #@borderRadius.setter
+    #def borderRadius(self, radius: int | tuple[int, int, int, int]):
+    #    if type(radius) == int:
+    #        self._border_radius = [radius, radius, radius, radius]
+    #    elif type(radius) == tuple:
+    #        self._border_radius = [radius[0], radius[1], radius[2], radius[3]]
         #self.border_radius = [higher_right, higher_left, bottom_right, bottom_left]
 
     @property
@@ -207,7 +206,7 @@ class Object2D:
                 self._location[1] += (speed if type(speed) == int or type(speed) == float else speed[1]) * self._motion_tick_time["y"].tickMotion()
         if axis_type == 30:  # local
             if self._motion_tick_time["y"].tick():
-                self.location = motion(self, axis, speed)
+                self.location = object2dSimpleMotion(self, axis, speed)
 
     def collision(self, window, objects: object | list = None, variables: str | list = None) -> bool | list:
         if objects is None:

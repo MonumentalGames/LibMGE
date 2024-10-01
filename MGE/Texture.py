@@ -10,7 +10,6 @@ def _get_sdl2_texture_size(texture):
     if ret is None:
         ret = [0, 0, 0, 0]
         LogError("getting texture attributes")
-        #sys.exit("getting texture attributes")
     return [ret[2], ret[3]]
 
 class Texture:
@@ -35,7 +34,6 @@ class Texture:
             self._tx[id(renderer)] = []
             self._tx[id(renderer)].clear()
             if self._image.count == 1:
-                #print(self._image.images)
                 self._tx[id(renderer)] = [sdl2.SDL_CreateTextureFromSurface(renderer, self._image.images[0]).contents]
             else:
                 for num in range(self._image.count):

@@ -1,5 +1,5 @@
-import threading
 import os
+from threading import Thread
 
 from .Common import _temp, _calculate_object2d
 from .Constants import *
@@ -8,9 +8,8 @@ from .Keyboard import keyboard, KeyboardText, KeyboardClick
 from .Time import Time, fps_to_time
 from .Platform import Platform
 from .Color import Color
-from .Mouse import GetMousePosition, MouseButton, MouseScroll, simpleHover, object2dSimpleHover
-from .Window import Window
-from .InternalWindow import InternalWindow
+from .Mouse import GetMousePosition, MouseButton, MouseScroll, object2dSimpleHover
+from .Window import Window, InternalWindow
 from ._sdl import sdl2, sdlttf, sdlgfx
 
 if Platform.system == "Windows":
@@ -41,7 +40,7 @@ class _ObjectText:
         self._text_font = sdlttf.TTF_OpenFont(self._font, self._font_size)
 
         self._text_render_type = 1
-        self._threading = threading.Thread()
+        self._threading = Thread()
         self.render_time = Time(fps_to_time(60))
 
         self._text_surface = None
@@ -119,7 +118,7 @@ class _ObjectText:
                 if self._text_surface_th is not None:
                     sdl2.SDL_FreeSurface(self._text_surface_th)
                 self._text_surface_th = sdl2.SDL_DuplicateSurface(self._text_surface).contents
-            self._threading = threading.Thread(target=self._single_threading_render)
+            self._threading = Thread(target=self._single_threading_render)
             self._threading.daemon = True
             self._threading.start()
 

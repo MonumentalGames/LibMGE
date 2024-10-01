@@ -1,7 +1,6 @@
-from ._sdl import sdl2, sdlttf
-from .Window import Window
-from .InternalWindow import InternalWindow
-from .Image import Image, Icon, icon_to_image
+from ._sdl import sdl2
+from .Window import Window, InternalWindow
+from .Image import icon_to_image
 from .Common import _temp, _calculate_object2d
 from .Camera import Camera
 from .Material import Material, DefaultMaterial
@@ -12,10 +11,6 @@ from .Mouse import MouseButton, simpleHover, object2dSimpleHover
 from .Text import _ObjectText, _DefaultFont
 
 __all__ = ["Button", "ButtonText", "ButtonImage", "ButtonIcon"]
-
-#location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), material=DefaultMaterial, mesh=Meshes2D.Plane
-#location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), material=DefaultMaterial, material_hover=DefaultMaterial
-#location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1), material=DefaultMaterial
 
 class _button:
     def __init__(self, location=(0, 0), rotation=0, size=(0, 0), scale=(1, 1)):
@@ -30,7 +25,7 @@ class _button:
         return object2dSimpleHover(window, camera, self._location, self._size, self._scale, self._pivot)
 
     def button(self, button: int, window, camera: Camera, multiple_click: bool = False) -> bool:
-        self.button_active = True
+        #self.button_active = True
         if self.hover(window, camera):
             _temp.MouseCursor = self._cursor
             if MouseButton(button, multiple_click):

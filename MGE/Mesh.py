@@ -1,44 +1,36 @@
-import math
 import os
+from math import cos, sin, radians
 from .Log import LogError
 
 def line_intersection(start_1, end_1, start_2, end_2):
-    # Calcula os deltas para as duas linhas
     dx1 = end_1[0] - start_1[0]
     dy1 = end_1[1] - start_1[1]
     dx2 = end_2[0] - start_2[0]
     dy2 = end_2[1] - start_2[1]
 
-    # Calcula os determinantes
     det = dx1 * dy2 - dy1 * dx2
 
-    # Verifica se as linhas são paralelas
     if det == 0:
-        return None  # As linhas são paralelas ou coincidentes
+        return None
 
-    # Calcula os parâmetros 'u' e 'v' para encontrar o ponto de interseção
     u = ((start_2[0] - start_1[0]) * dy2 - (start_2[1] - start_1[1]) * dx2) / det
     v = ((start_2[0] - start_1[0]) * dy1 - (start_2[1] - start_1[1]) * dx1) / det
 
-    # Verifica se o ponto de interseção está dentro das linhas
     if 0 <= u <= 1 and 0 <= v <= 1:
         intersection_x = start_1[0] + u * dx1
         intersection_y = start_1[1] + u * dy1
         return (round(intersection_x), round(intersection_y))
     else:
-        return None  # As linhas não se intersectam dentro dos segmentos
+        return None
 
 def rotate_point(x, y, cx, cy, angle):
-    # Converte o ângulo para radianos
-    angle_rad = math.radians(angle)
+    angle_rad = radians(angle)
 
-    # Calcula a diferença entre as coordenadas e o ponto central
     dx = x - cx
     dy = y - cy
 
-    # Aplica a rotação
-    new_x = dx * math.cos(angle_rad) - dy * math.sin(angle_rad) + cx
-    new_y = dx * math.sin(angle_rad) + dy * math.cos(angle_rad) + cy
+    new_x = dx * cos(angle_rad) - dy * sin(angle_rad) + cx
+    new_y = dx * sin(angle_rad) + dy * cos(angle_rad) + cy
 
     return new_x, new_y
 
@@ -46,14 +38,11 @@ def calculate_square_vertices(location, size, rotation_angle):
     x, y = location
     width, height = size
 
-    # Calcula o ponto central
     cx = x + width / 2
     cy = y + height / 2
 
-    # Define os vértices
     vertices = [(x, y), (x + width, y), (x + width, y + height), (x, y + height)]
 
-    # Aplica a rotação a cada vértice
     if rotation_angle != 0:
         vertices = [rotate_point(v[0], v[1], cx, cy, rotation_angle) for v in vertices]
 

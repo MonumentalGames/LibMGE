@@ -1,6 +1,5 @@
 from .Common import _temp, AllEvents
-from ._sdl import sdl2
-from .Constants import KeyboardButton, All
+from .Constants import All
 
 __all__ = ["keyboard", "KeyboardText", "KeyboardClick", "KeyboardState"]
 

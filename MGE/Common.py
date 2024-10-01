@@ -1,9 +1,8 @@
-import sys
 import os
-import types
+from .Log import LogCritical
 from ctypes import cast, POINTER as _P
 from ._sdl import sdl2, sdlimage, sdlttf, sdlmixer
-from .Time import Time as _Time, fps_to_time, get_fps_from_time
+from .Time import Time as _Time, fps_to_time
 from .Monitors import _update_monitors_datas
 from .Constants import All, Pivot2D
 from .Mesh import edges, calculate_square_vertices, line_intersection
@@ -37,11 +36,11 @@ class _temp:
 
 def init(video=True, audio=False, events=True, controller=False, sensor=False):
     if sdl2.SDL_Init(0) != 0:
-        sys.exit("initializing SDL2")
+        LogCritical("initializing SDL2")
 
     def sdl2_init(system):
         if sdl2.SDL_InitSubSystem(system) != 0:
-            sys.exit(f"initializing the {system} subsystem")
+            LogCritical(f"initializing the {system} subsystem")
 
     sdl2_init(sdl2.SDL_INIT_TIMER)
     if events:

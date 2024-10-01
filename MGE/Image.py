@@ -1,8 +1,8 @@
 import os
-import ctypes
-import numpy
-import threading
+from ctypes import c_uint8, c_uint32
+from numpy import frombuffer, uint8, mean, ndarray
 from urllib.request import urlopen
+from threading import Thread
 
 from ._sdl import sdl2, sdlimage
 from .Log import LogError
@@ -72,13 +72,13 @@ class Image:
 
     @property
     def color(self):
-        pixel_buffer = (ctypes.c_uint8 * (self._size[0] * self._size[1] * self._format[0] // 8)).from_address(self.images[0].pixels)
-        surface_array = numpy.frombuffer(pixel_buffer, dtype=numpy.uint8)
+        pixel_buffer = (c_uint8 * (self._size[0] * self._size[1] * self._format[0] // 8)).from_address(self.images[0].pixels)
+        surface_array = frombuffer(pixel_buffer, dtype=uint8)
 
         pixels = surface_array.reshape((self._size[1], self._size[0], self._format[0] // 8))
 
         # Calculando a média de cada canal de cor (R, G, B, A)
-        media_cor = numpy.mean(pixels, axis=(0, 1))
+        media_cor = mean(pixels, axis=(0, 1))
 
         _color = Color(list(media_cor.astype(int)))
         _color.a = 255
@@ -165,6 +165,7 @@ def _loadImageUrl(url):
                 chunk = res.read(_chunkSize if _chunkSize > 0 else -1)
                 image_bytes += chunk
                 if not chunk or _chunkSize <= 0:
+                    del chunk
                     break
                 del chunk
     except Exception as e:
@@ -204,7 +205,7 @@ def LoadImageUrl(url: str | list | tuple, mult: bool = False) -> Image | tuple |
 
         for num in range(len(url)):
             if mult:
-                _thread = threading.Thread(target=_load, args=(num, ), daemon=True)
+                _thread = Thread(target=_load, args=(num, ), daemon=True)
                 _thread.start()
                 _threads.append(_thread)
             else:
@@ -276,17 +277,17 @@ def icon_to_image(icon: Icon) -> Image:
     _image._format = ImageFormat.ARGB
     return _image
 
-def _sdl2_surface_to_numpy_array(surface: sdl2.SDL_Surface) -> numpy.ndarray:
+def _sdl2_surface_to_numpy_array(surface: sdl2.SDL_Surface) -> ndarray:
     width, height = surface.w, surface.h
     depth = surface.format.contents.BytesPerPixel * 8
 
-    pixel_buffer = (ctypes.c_uint8 * (width * height * depth // 8)).from_address(surface.pixels)
-    surface_array = numpy.frombuffer(pixel_buffer, dtype=numpy.uint8)
+    pixel_buffer = (c_uint8 * (width * height * depth // 8)).from_address(surface.pixels)
+    surface_array = frombuffer(pixel_buffer, dtype=uint8)
     surface_array = surface_array.reshape((height, width, depth // 8))
 
     return surface_array.copy()
 
-def image_to_numpyArray(image: Image) -> numpy.ndarray:
+def image_to_numpyArray(image: Image) -> ndarray:
     return _sdl2_surface_to_numpy_array(image.images[0])
 
 def compare_image(image1: Image, image2: Image) -> bool:
@@ -308,20 +309,20 @@ def _test_RGBA_mod(surface1, surface2, mult, r, g, b, a):
             for x in range(surface1.w):
                 pixel_offset = y * pitch + x * bytes_per_pixel
 
-                _a = ctypes.c_uint8.from_address((pixels if a else pixels2) + pixel_offset + 3).value
-                _r = ctypes.c_uint8.from_address((pixels if r else pixels2) + pixel_offset + 0).value
-                _g = ctypes.c_uint8.from_address((pixels if g else pixels2) + pixel_offset + 1).value
-                _b = ctypes.c_uint8.from_address((pixels if b else pixels2) + pixel_offset + 2).value
+                _a = c_uint8.from_address((pixels if a else pixels2) + pixel_offset + 3).value
+                _r = c_uint8.from_address((pixels if r else pixels2) + pixel_offset + 0).value
+                _g = c_uint8.from_address((pixels if g else pixels2) + pixel_offset + 1).value
+                _b = c_uint8.from_address((pixels if b else pixels2) + pixel_offset + 2).value
 
                 pixel_value = (_a << 0) | (_r << 8) | (_g << 16) | (_b << 24)
 
-                ctypes.c_uint32.from_address(surface2.pixels + y * surface2.pitch + x * 4).value = pixel_value
+                c_uint32.from_address(surface2.pixels + y * surface2.pitch + x * 4).value = pixel_value
 
         _threads = []
 
         for y in range(surface1.h):
             if mult:
-                _thread = threading.Thread(target=_line_mod, daemon=True)
+                _thread = Thread(target=_line_mod, daemon=True)
                 _thread.start()
                 _threads.append(_thread)
             else:
@@ -329,7 +330,6 @@ def _test_RGBA_mod(surface1, surface2, mult, r, g, b, a):
 
         for t in _threads:
             t.join()
-
 
 _path = f"{os.path.abspath(os.path.dirname(__file__))}/logo.ico"
 if os.path.exists(_path):

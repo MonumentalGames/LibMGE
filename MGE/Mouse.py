@@ -1,4 +1,4 @@
-import ctypes
+from ctypes import c_int, byref
 
 from ._sdl import sdl2
 from .Monitors import Monitors
@@ -16,13 +16,13 @@ def MouseState(button):
     return False
 
 def GetMousePosition():
-    x, y = ctypes.c_int(0), ctypes.c_int(0)
-    sdl2.SDL_GetMouseState(ctypes.byref(x), ctypes.byref(y))
+    x, y = c_int(0), c_int(0)
+    sdl2.SDL_GetMouseState(byref(x), byref(y))
     return [x.value, y.value]
 
 def GetMouseGlobalPosition():
-    x, y = ctypes.c_int(0), ctypes.c_int(0)
-    sdl2.SDL_GetGlobalMouseState(ctypes.byref(x), ctypes.byref(y))
+    x, y = c_int(0), c_int(0)
+    sdl2.SDL_GetGlobalMouseState(byref(x), byref(y))
     return [x.value, y.value]
 
 def SetMousePosition(pos):
@@ -35,7 +35,6 @@ def SetMouseVisibility(visibility=True):
     sdl2.SDL_ShowCursor(sdl2.SDL_ENABLE if visibility else sdl2.SDL_DISABLE)
 
 def SetMouseCursor(cursor):
-    #sdl2.SDL_SetCursor(_temp.MouseCursors[cursor if 0 <= cursor <= 12 else 0])
     _temp.MouseCursor = cursor if 0 <= cursor <= 12 else 0
 
 def MouseMovement():

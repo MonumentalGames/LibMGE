@@ -30,7 +30,7 @@ class _Window:
 
         self._variables = {}
 
-        self._frameRateLimit = Monitors[0].frame_rate
+        self._frameRateLimit = Monitors[0].frameRate
         self._cache = {"clear_screen": True, "fill": True, "times": {"standard_time": Time(fps_to_time(self._frameRateLimit)), "title_time": Time(0.5), "optimized_time": {"time_start": Time(0.5), "time_loop": Time(fps_to_time(2))}}, "window_tx": None}
         self.frameRate = 0
 

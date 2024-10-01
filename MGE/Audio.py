@@ -1,5 +1,5 @@
 import os
-import threading
+from threading import Thread
 
 from ._sdl import sdlmixer
 from .Log import LogError
@@ -17,7 +17,7 @@ class Sound:
             self.load()
 
     def _threading_load(self, path):
-        _threading = threading.Thread(target=self._load, args=(path, ))
+        _threading = Thread(target=self._load, args=(path, ))
         _threading.daemon = True
         _threading.start()
 
@@ -27,7 +27,6 @@ class Sound:
             self.sound = sdlmixer.Mix_LoadWAV(self._path.encode())
         if not self.sound:
             LogError(f"Unable to load sound '{self._path}'")
-        #    sys.exit("MGE-Error")
 
     def load(self, path=None):
         if self._load_type == 0:

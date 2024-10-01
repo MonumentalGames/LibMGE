@@ -169,4 +169,4 @@ class Material:
 
 DefaultMaterial = Material()
 
-ButtonDefaultMaterials = [Material(color=Color((40, 40, 40))), Material(color=Color((35, 35, 35)))]
+ButtonDefaultMaterials = [Material(color=Color(40, 40, 40)), Material(color=Color(35, 35, 35))]

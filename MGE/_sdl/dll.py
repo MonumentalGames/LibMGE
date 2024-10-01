@@ -1,4 +1,3 @@
-import sys
 import os
 from ctypes import CDLL
 

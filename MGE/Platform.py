@@ -39,7 +39,7 @@ class Platform:
         SDLTTF_version = ""
 
 _systems = ["Windows", "Mac OS X", "Linux", "iOS", "Android"]
-_compatible_systems = ["Windows", "Linux"]
+_compatible_systems = ["Windows"]
 
 _min_versions_SDL = {"sdl": [2, 26, 0], "sdlgfx": [0, 0, 0], "sdlimage": [2, 0, 0], "sdlmixer": [2, 6, 0], "sdlttf": [2, 20, 0]}
 
