@@ -1,11 +1,6 @@
 from ctypes import c_int, POINTER as _P
-from .dll import DLL, find_path
-try:
-    from .sdl2 import Uint8, Sint16, SDL_Renderer, SDL_Surface
-except:
-    pass
-
-GFXFunc = DLL(find_path("SDL2_gfx.dll")).bind_function
+from ._dll_loader import GFXFunc
+from .sdl2 import Uint8, Sint16, SDL_Renderer, SDL_Surface
 
 def pixelRGBA(renderer, x, y, r, g, b, a): return GFXFunc("pixelRGBA", [_P(SDL_Renderer), Sint16, Sint16, Uint8, Uint8, Uint8, Uint8], c_int)(renderer, x, y, r, g, b, a)
 

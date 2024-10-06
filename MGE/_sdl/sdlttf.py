@@ -1,11 +1,6 @@
 from ctypes import c_int, c_uint, c_long, c_char_p, c_void_p, byref, POINTER as _P
-from .dll import DLL, find_path
-try:
-    from .sdl2 import Uint16, Uint32, SDL_RWops, SDL_version, SDL_Color, SDL_Surface
-except:
-    pass
-
-TTFFunc = DLL(find_path("SDL2_ttf.dll")).bind_function
+from ._dll_loader import TTFFunc
+from .sdl2 import Uint16, Uint32, SDL_RWops, SDL_version, SDL_Color, SDL_Surface
 
 TTF_STYLE_NORMAL = 0x00
 TTF_STYLE_BOLD = 0x01

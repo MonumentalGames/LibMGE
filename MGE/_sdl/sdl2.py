@@ -1,7 +1,7 @@
 import sys
 from ctypes import *
 from ctypes import POINTER as _P
-from .dll import DLL, find_path
+from ._dll_loader import SDLFunc
 
 Sint8 = c_int8
 Uint8 = c_uint8
@@ -19,8 +19,6 @@ SDL_TRUE = 1
 SDL_LIL_ENDIAN = 1234
 SDL_BIG_ENDIAN = 4321
 SDL_BYTEORDER = SDL_LIL_ENDIAN if sys.byteorder == "little" else SDL_BIG_ENDIAN
-
-SDLFunc = DLL(find_path("SDL2.dll")).bind_function
 
 SDLFunc("SDL_SetMainReady")()
 

@@ -1,11 +1,6 @@
 from ctypes import Structure, CFUNCTYPE, c_int, c_char_p, c_void_p, c_double, POINTER as _P
-from .dll import DLL, find_path
-try:
-    from .sdl2 import Uint8, Uint16, Uint32, Sint16, SDL_bool, SDL_RWops, SDL_RWFromFile, SDL_version
-except:
-    pass
-
-MIXERFunc = DLL(find_path("SDL2_mixer.dll")).bind_function
+from ._dll_loader import MIXERFunc
+from .sdl2 import Uint8, Uint16, Uint32, Sint16, SDL_bool, SDL_RWops, SDL_RWFromFile, SDL_version
 
 Mix_Fading = c_int
 MIX_NO_FADING = 0

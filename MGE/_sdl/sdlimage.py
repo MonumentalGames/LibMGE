@@ -1,11 +1,6 @@
 from ctypes import Structure, c_int, c_char_p, POINTER as _P
-from .dll import DLL, find_path
-try:
-    from .sdl2 import SDL_version, SDL_RWops, SDL_Surface, SDL_Texture, SDL_Renderer
-except:
-    pass
-
-IMAGEFunc = DLL(find_path("SDL2_image.dll")).bind_function
+from ._dll_loader import IMAGEFunc
+from .sdl2 import SDL_version, SDL_RWops, SDL_Surface, SDL_Texture, SDL_Renderer
 
 class IMG_Animation(Structure):
     _fields_ = [("w", c_int), ("h", c_int), ("count", c_int), ("frames", _P(_P(SDL_Surface))), ("delays", _P(c_int))]
