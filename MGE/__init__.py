@@ -1,6 +1,6 @@
 import sys
 
-if not sys.argv or sys.argv[0] != f"{sys.prefix}\\Scripts\\mge.exe":
+if not sys.argv or sys.argv[0] not in (f"{sys.prefix}\\Scripts\\mge.exe", f"{sys.prefix}\\Scripts\\mge"):
     from .Common import update, init, SetLogicClock, GetLogicClock, AllEvents, QuitEvent, WindowEvents, OpenUrl, AutoCalcs2D
     from .Log import *
     from .Audio import Music, Sound
