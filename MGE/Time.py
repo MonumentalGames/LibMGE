@@ -6,7 +6,7 @@ class Time:
     def __init__(self, delta_time: int | float):
         self._tick_time = time()
         self._delta_time = delta_time
-        self._elapsed_time = time() - self._tick_time
+        self._elapsed_time = 0
         self._flipflop_bool = False
 
     @property
@@ -30,7 +30,7 @@ class Time:
 
     def tick(self, restart=False) -> bool:
         self._elapsed_time = time() - self._tick_time
-        if self._elapsed_time >= self._delta_time:
+        if self._delta_time <= 0 or self._elapsed_time >= self._delta_time:
             if restart:
                 self.restart()
             return True
@@ -38,14 +38,15 @@ class Time:
 
     def tickSleep(self):
         self._elapsed_time = time() - self._tick_time
-        if self._elapsed_time < self._delta_time:
-            sleep(self._delta_time - self._elapsed_time)
+        remaining_time = self._delta_time - self._elapsed_time
+        if remaining_time > 0:
+            sleep(remaining_time)
         self.restart()
 
     def tickMotion(self) -> float:
         self._elapsed_time = time() - self._tick_time
         self.restart()
-        return 1 if self._delta_time == 0 else 0.01 * ((self._elapsed_time / self._delta_time) * 100)
+        return 1 if self._delta_time == 0 else (self._elapsed_time / self._delta_time) * 0.01 * 100
 
     def tickFlipFlop(self) -> bool:
         self._elapsed_time = time() - self._tick_time
