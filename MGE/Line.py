@@ -11,15 +11,19 @@ class Line:
         self._end = end
         self._size = size
 
+        self.variables = {"_type": "Line"}
+
         self._material = Material()
 
     def drawObject(self, window: Window, camera: Camera = None):
-        if window.__WindowActive__:
-            if self not in window.drawnObjects:
-                window.drawnObjects.append(self)
-                render, cache_start, cache_end, cache_size = _calculate_line(self._start, self._end, self._size, window, camera)
-                if render:
-                    window.drawLine(cache_start, cache_end, cache_size, self._material.color)
+        if not window.__WindowActive__ or not window.drawnObjects.addObject(id(self), self):
+            return
+
+        _render, cache_start, cache_end, cache_size = _calculate_line(self._start, self._end, self._size, window, camera)
+        if not _render:
+            return
+
+        window.drawLine(cache_start, cache_end, cache_size, self._material.color)
 
     @property
     def start(self):
